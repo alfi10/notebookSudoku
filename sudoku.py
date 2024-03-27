@@ -1,3 +1,6 @@
+'''
+Inspirado en el código de py-sudoku
+'''
 import numpy as np
 
 
