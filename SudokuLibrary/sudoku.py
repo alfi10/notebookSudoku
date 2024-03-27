@@ -59,17 +59,39 @@ class Sudoku:
 
         return True
 
+    def get_cell(self, row_coord: int, col_coord: int) -> int:
+        # Comprobación de errores
+        if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
+            raise ValueError('Invalid coordinates')
+
+        return int(self.board[row_coord][col_coord])
+
     def fill_cell(self, row_coord: int, col_coord: int, num: int) -> bool:
         # Comprobación de errores
         if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
             raise ValueError('Invalid coordinates')
         if num < 1 or num > 9:
             raise ValueError('Invalid number')
-        if self.board[row_coord][col_coord] != 0:
-            raise ValueError('Cell ({}, {}) already filled'.format(row_coord, col_coord))
+        if self.get_cell(row_coord, col_coord) != 0:
+            raise ValueError('Tried {} but Cell ({}, {}) already filled with {}'.format(
+                num,
+                row_coord,
+                col_coord,
+                self.board[row_coord][col_coord]
+            ))
 
         # Rellenamos la celda si el valor es válido en este momento
         if self._is_valid(row_coord, col_coord, num):
             self.board[row_coord][col_coord] = num
             return True
         return False
+
+    def clear_cell(self, row_coord: int, col_coord: int):
+        # Comprobación de errores
+        if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
+            raise ValueError('Invalid coordinates')
+        if self.get_cell(row_coord, col_coord) == 0:
+            raise ValueError('Cell ({}, {}) already empty'.format(row_coord, col_coord))
+
+        # Vaciamos la celda
+        self.board[row_coord][col_coord] = 0
