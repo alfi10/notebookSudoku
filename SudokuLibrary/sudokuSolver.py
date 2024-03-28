@@ -1,10 +1,11 @@
+import copy
 import numpy as np
 from .sudoku import Sudoku
 
 
 class SudokuSolver:
     def __init__(self, sudoku: Sudoku):
-        self.sudoku = sudoku
+        self.sudoku = copy.deepcopy(sudoku)
         self.operations_applied = np.array([], dtype=int)
 
     def _find_empty_cells(self):
@@ -13,11 +14,17 @@ class SudokuSolver:
             return np.array(list(zip(*empty_cells)))
         return None
 
-    def solve_profundidad(self):
-        sudoku = self.sudoku
+    def show_sudoku(self, sudoku: Sudoku = None):
+        if sudoku is None:
+            sudoku = self.sudoku
+            print('SUDOKU INICIAL:')
+        print(sudoku)
+
+    def protosolver(self):
+        sudoku = copy.deepcopy(self.sudoku)
         empty_cells = self._find_empty_cells()
         if empty_cells is None:
-            return True
+            return sudoku
         else:
             cells_to_fill = len(empty_cells)
 
@@ -27,11 +34,11 @@ class SudokuSolver:
             # Operar sobre el nodo que toca en este piso del arbol
             row_coord, col_coord = empty_cells[i_empty_cell]
             # Prueba cada número del 1 al 9
-            first_number_test = sudoku.get_cell(row_coord, col_coord) + 1
-            if first_number_test != 1:
+            next_number_test = sudoku.get_cell(row_coord, col_coord) + 1
+            if next_number_test != 1:
                 # Si la celda ya tiene un número, lo borramos porque hemos subido desde un nodo hijo cerrado
                 sudoku.clear_cell(row_coord, col_coord)
-            for num in range(first_number_test, 10):
+            for num in range(next_number_test, 10):
                 if sudoku.fill_cell(row_coord, col_coord, num):
                     i_empty_cell += 1
                     if i_empty_cell == cells_to_fill:
@@ -43,18 +50,19 @@ class SudokuSolver:
                 Sube al nodo padre
                 '''
                 i_empty_cell -= 1
+        return sudoku
 
-
-        # # Recorre cada celda vacía
-        # for row_coord, col_coord in empty_cells:
-        #     try:
-        #         # Prueba cada número del 1 al 9
-        #         for num in range(1, 10):
-        #             if self.sudoku.fill_cell(row_coord, col_coord, num):
-        #                 if self.solve_profundidad():
-        #                     return
-        #             else:
-        #                 print('False en Cell ({}, {}) intentando {}'.format(row_coord, col_coord, num))
-        #         print('No fill en ({}, {})'.format(row_coord, col_coord))
-        #     except ValueError as e:
-        #         print(e)
+    def solve_profundidad(self):
+        # Tema 3, diapositiva 42
+        sudoku = copy.deepcopy(self.sudoku)
+        open_nodes = [sudoku]
+        closed_nodes = []
+        while open_nodes:
+            current = open_nodes.pop()  # 1.
+            closed_nodes.append(current)  # 2.
+            if current.is_solved():
+                return current  # 3.
+            else:  # 4.
+                succesors = current.get_succesors()  # 4.1
+                open_nodes.extend(succesors)  # 4.2
+        raise Exception('No solution found')
