@@ -9,9 +9,12 @@ class Sudoku:
         self.debug = debug
         self.board = self._generate_board() if board is None else board
         self.board_valids = self.calculate_board_valids() if board_valids is None else board_valids
+        self.solution_path = []
 
     def __str__(self):
         string = str()
+        solution_path = self.solution_path
+        string += 'Estado Inicial\n' if not solution_path else 'Camino de solución: {}\n'.format(solution_path)
         for index_row, row in enumerate(self.board):
             if index_row % 3 == 0:
                 string += ('-' * 31) + '\n'
