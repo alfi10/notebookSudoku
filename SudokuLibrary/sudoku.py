@@ -158,6 +158,12 @@ class Sudoku:
         return False
 
     def clear_cell(self, row_coord: int, col_coord: int):
+        """
+        Borra el número de una celda si no está vacía.
+        :param row_coord: Coordenada de fila de la celda
+        :param col_coord: Coordenada de columna de la celda
+        :return: None
+        """
         # Comprobación de errores
         if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
             raise ValueError('Invalid coordinates')
