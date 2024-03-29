@@ -5,10 +5,10 @@ import numpy as np
 
 
 class Sudoku:
-    def __init__(self, board: np.ndarray[Any, np.dtype] = None, board_valids: np.ndarray = None, debug: bool = False):
+    def __init__(self, board: np.ndarray[Any, np.dtype] = None, debug: bool = False):
         self.debug = debug
         self.board = self._generate_board() if board is None else board
-        self.board_valids = self.calculate_board_valids() if board_valids is None else board_valids
+        self.board_valids = self.calculate_board_valids()
         self.solution_path = []
 
     def __str__(self):
