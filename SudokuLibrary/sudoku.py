@@ -203,6 +203,12 @@ class Sudoku:
         return np.all(self.board != 0)
 
     def get_successors(self, cost: int = None):
+        """
+        Devuelve una lista de sucesores del nodo actual. El nodo actual es el primero que, en orden izquierda-derecha y
+        arriba-abajo, tiene una celda vacía.
+        :param cost: Opcional. Coste acumulado del nodo actual
+        :return: Lista de Sudoku sucesores o de tuplas (Sudoku, coste) sucesores si recibimos cost
+        """
         successors = []
         valids_row_length = self.board_valids.shape[0]
         for irow in range(valids_row_length):
@@ -223,7 +229,7 @@ class Sudoku:
                         else:
                             successors.append(sudoku)
                     return successors
-        raise Exception  # Nunca debería llegar aquí
+        raise Exception('Nunca debería llegar aquí. Debe ser que el Sudoku no tiene solución')
 
     def heuristic(self):
         return np.sum(self.board_valids)
