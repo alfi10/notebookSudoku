@@ -179,6 +179,12 @@ class Sudoku:
             self._update_board_valids(row_coord, col_coord, num, erase=True)
 
     def get_cell_valids(self, row_coord: int, col_coord: int) -> np.ndarray:
+        """
+        Devuelve los números válidos para rellenar una celda.
+        :param row_coord: Coordenada de fila de la celda
+        :param col_coord: Coordenada de columna de la celda
+        :return: np.ndarray de booleanos de 9 elementos. True si el número es válido, False en caso contrario
+        """
         # Comprobación de errores
         if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
             raise ValueError('Invalid coordinates')
