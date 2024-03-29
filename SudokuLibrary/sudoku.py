@@ -151,9 +151,10 @@ class Sudoku:
         # Rellenamos la celda si el valor es válido en este momento
         if self._is_valid(row_coord, col_coord, num):
             self.board[row_coord][col_coord] = num
-            if hasattr(self, 'board_valids'):
-                # Borramos el número añadido de los válidos correspondientes
-                self._update_board_valids(row_coord, col_coord, num)
+            # Borramos el número añadido de los válidos correspondientes
+            self._update_board_valids(row_coord, col_coord, num)
+            # Agregamos el paso al camino hacia la solución
+            self._update_solution_path(row_coord, col_coord, num)
             return True
         return False
 
@@ -174,9 +175,10 @@ class Sudoku:
 
         # Vaciamos la celda
         self.board[row_coord][col_coord] = 0
-        if hasattr(self, 'board_valids'):
-            # Restauramos el número borrado a los válidos correspondientes
-            self._update_board_valids(row_coord, col_coord, num, erase=True)
+        # Restauramos el número borrado a los válidos correspondientes
+        self._update_board_valids(row_coord, col_coord, num, erase=True)
+        # Eliminamos el paso del camino hacia la solución
+        self._update_solution_path(row_coord, col_coord, 0)
 
     def get_cell_valids(self, row_coord: int, col_coord: int) -> np.ndarray:
         """
