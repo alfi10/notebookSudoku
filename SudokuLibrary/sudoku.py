@@ -131,18 +131,22 @@ class Sudoku:
                 ) if erase else erase  # Ver docstring
 
     def fill_cell(self, row_coord: int, col_coord: int, num: int) -> bool:
+        """
+        Rellena una celda con un número si es válido en ese momento.
+        :param row_coord: Coordenada de fila de la celda
+        :param col_coord: Coordenada de columna de la celda
+        :param num: Número a rellenar en la celda
+        :return: True si se ha rellenado, False en caso contrario
+        """
         # Comprobación de errores
         if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
             raise ValueError('Invalid coordinates')
         if num < 1 or num > 9:
             raise ValueError('Invalid number: {}'.format(num))
         if self.get_cell(row_coord, col_coord) != 0:
-            raise ValueError('Tried {} but Cell ({}, {}) already filled with {}'.format(
-                num,
-                row_coord,
-                col_coord,
-                self.get_cell(row_coord, col_coord)
-            ))
+            raise ValueError('Tried {} but Cell ({}, {}) already filled with {}'
+                             .format(num, row_coord, col_coord, self.get_cell(row_coord, col_coord))
+                             )
 
         # Rellenamos la celda si el valor es válido en este momento
         if self._is_valid(row_coord, col_coord, num):
