@@ -1,3 +1,4 @@
+import bisect
 import copy
 import numpy as np
 from .sudoku import Sudoku
@@ -95,13 +96,12 @@ class SudokuSolver:
                 for successor in succesors:
                     candidate_board, candidate_cost = successor
                     closed_successor_nodes = [node for node in closed_nodes if node[0] == candidate_board]
-                    if closed_successor_nodes:
-                        candidate_cost_less_than_closed_costs = np.all(
-                            [candidate_cost < node[1] for node in closed_successor_nodes]
-                        )
-                        if candidate_cost_less_than_closed_costs:
-                            open_nodes.append(successor)  # 5.
-                        continue
+                    candidate_cost_less_than_closed_costs = np.all(
+                        [candidate_cost < node[1] for node in closed_successor_nodes]
+                    )
+                    if closed_successor_nodes and not candidate_cost_less_than_closed_costs:
+                        continue  # 5.
+                    # Else se insertará ordenadamente al final del bloque
 
                     iopen, open_successor_node = next(
                         (
@@ -109,14 +109,13 @@ class SudokuSolver:
                             if node[0] == candidate_board
                         ), (None, None)
                     )
-                    # if len(open_successor_node) > 1:
-                    #     raise Exception('More than one open successor node')
                     if open_successor_node is not None:
                         candidate_cost_less_than_open_cost = candidate_cost < open_successor_node[1]
                         if candidate_cost_less_than_open_cost:
-                            open_nodes[iopen] = successor  # 6.
+                            open_nodes.pop(iopen)  # 6.
+                            # Se inserta ordenadamente al final del bloque
                         continue
 
-                    open_nodes.extend(succesors)
-                open_nodes.sort(key=lambda x: x[1])  # 7.
+                    bisect.insort(open_nodes, successor, key=lambda x: x[1])  # 7.
+
         raise Exception('No solution found')
