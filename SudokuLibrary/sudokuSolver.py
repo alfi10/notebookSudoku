@@ -79,3 +79,19 @@ class SudokuSolver:
                 succesors = current.get_successors()
                 open_nodes.extend(succesors)
         raise Exception('No solution found')
+
+    def solve_coste_uniforme(self):
+        # Tema 3, diapositiva 39
+        sudoku = copy.deepcopy(self.sudoku)
+        open_nodes = [(sudoku, 0)]
+        closed_nodes = []
+        while open_nodes:
+            current, cost = open_nodes.pop(0)
+            closed_nodes.append(current)
+            if current.is_solved():
+                return current
+            else:
+                succesors = current.get_successors(cost)
+                open_nodes.extend(succesors)
+                open_nodes.sort(key=lambda x: x[1])
+        raise Exception('No solution found')
