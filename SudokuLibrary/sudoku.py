@@ -9,7 +9,7 @@ class Sudoku:
         self.debug = debug
         self.board = self._generate_board() if board is None else board
         self.board_valids = self.calculate_board_valids()
-        self.solution_path = []
+        self.solution_path = []  # Lista de tuplas (row, col, num) con los pasos del camino hacia la solución
 
     def __str__(self):
         string = str()
@@ -233,3 +233,38 @@ class Sudoku:
 
     def heuristic(self):
         return np.sum(self.board_valids)
+
+    def _update_solution_path(self, row_coord: int, col_coord: int, num: int):
+        """
+        Actualiza el camino hacia la solución con el paso actual si num es diferente de 0. Si num es 0, elimina el paso
+        del camino.
+        :param row_coord: Coordenada de fila del paso
+        :param col_coord: Coordenada de columna del paso
+        :param num: Número del paso dado. Si es 0, se elimina dado en las coordenadas dadas
+        :return: None
+        """
+        # Comprobación de errores pre ejecución
+        if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
+            raise ValueError('Invalid coordinates: (X: {}, Y: {})'.format(row_coord, col_coord))
+        if num < 0 or num > 9:
+            raise ValueError('Invalid number: {}'.format(num))
+
+        # Si num es 0, agregamos el paso a la solución
+        if num != 0:
+            self.solution_path.append((row_coord, col_coord, num))
+        else:  # Si num es 0, eliminamos el paso de la solución
+            ultimo_paso_coordenadas = self.solution_path[-1:][2:]
+            # Si el paso a eliminar no es el último, lo buscamos
+            if ultimo_paso_coordenadas != (row_coord, col_coord):
+                # Buscamos el paso a eliminar
+                indice = next(
+                    (indice for indice, paso in enumerate(self.solution_path)
+                     if paso[:2] == (row_coord, col_coord)
+                     ), None
+                )
+                if indice is not None:
+                    self.solution_path.pop(indice)
+                else:
+                    raise ValueError('No se encontró el paso a eliminar')
+            else:  # El paso a eliminar es el último. Pop
+                self.solution_path.pop()
