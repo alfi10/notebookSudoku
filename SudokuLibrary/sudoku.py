@@ -45,6 +45,19 @@ class Sudoku:
             # Generamos un sudoku vacío. Pendiente de implementar de verdad
             return np.zeros((9, 9), dtype=int)
 
+    def get_cell(self, row_coord: int, col_coord: int) -> int:
+        """
+        Devuelve el número de la celda en las coordenadas dadas de la matriz del sudoku.
+        :param row_coord: Coordenada de fila de la celda (Vertical)
+        :param col_coord: Coordenada de columna de la celda (Horizontal)
+        :return: El número almacenado en la celda de las coordenadas dadas.
+        """
+        # Comprobación de errores
+        if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
+            raise ValueError('Invalid coordinates')
+
+        return int(self.board[row_coord][col_coord])
+
     def _is_valid(self, row_coord: int, col_coord: int, num: int) -> bool:
         # Comprobación de errores
         if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
@@ -67,13 +80,6 @@ class Sudoku:
             return False
 
         return True
-
-    def get_cell(self, row_coord: int, col_coord: int) -> int:
-        # Comprobación de errores
-        if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
-            raise ValueError('Invalid coordinates')
-
-        return int(self.board[row_coord][col_coord])
 
     def _update_board_valids(self, row_coord: int, col_coord: int, num: int, erase: bool = False):
         """
