@@ -86,12 +86,37 @@ class SudokuSolver:
         open_nodes = [(sudoku, 0)]
         closed_nodes = []
         while open_nodes:
-            current, cost = open_nodes.pop(0)
-            closed_nodes.append(current)
+            current, cost = open_nodes.pop(0)  # 1.
+            closed_nodes.append((current, cost))  # 2.
             if current.is_solved():
-                return current
+                return current  # 3.
             else:
-                succesors = current.get_successors(cost)
-                open_nodes.extend(succesors)
-                open_nodes.sort(key=lambda x: x[1])
+                succesors = current.get_successors(cost)  # 4.
+                for successor in succesors:
+                    candidate_board, candidate_cost = successor
+                    closed_successor_nodes = [node for node in closed_nodes if node[0] == candidate_board]
+                    if closed_successor_nodes:
+                        candidate_cost_less_than_closed_costs = np.all(
+                            [candidate_cost < node[1] for node in closed_successor_nodes]
+                        )
+                        if candidate_cost_less_than_closed_costs:
+                            open_nodes.append(successor)  # 5.
+                        continue
+
+                    iopen, open_successor_node = next(
+                        (
+                            (index, node) for index, node in enumerate(open_nodes)
+                            if node[0] == candidate_board
+                        ), (None, None)
+                    )
+                    # if len(open_successor_node) > 1:
+                    #     raise Exception('More than one open successor node')
+                    if open_successor_node is not None:
+                        candidate_cost_less_than_open_cost = candidate_cost < open_successor_node[1]
+                        if candidate_cost_less_than_open_cost:
+                            open_nodes[iopen] = successor  # 6.
+                        continue
+
+                    open_nodes.extend(succesors)
+                open_nodes.sort(key=lambda x: x[1])  # 7.
         raise Exception('No solution found')
