@@ -119,3 +119,25 @@ class SudokuSolver:
                     bisect.insort(open_nodes, successor, key=lambda x: x[1])  # 7.
 
         raise Exception('No solution found')
+
+    def solve_avara(self):
+        # Tema 3, diapositiva 45
+        sudoku = copy.deepcopy(self.sudoku)
+        open_nodes = [(sudoku, sudoku.heuristic())]
+        closed_nodes = []
+        while open_nodes:
+            current, heuristic = open_nodes.pop(0)  # 1.
+            closed_nodes.append((current, heuristic))  # 2.
+            if current.is_solved():
+                return current  # 3.
+            else:
+                succesors = current.get_successors()  # 4.
+                for successor in succesors:
+                    candidate_board = successor
+                    candidate_heuristic = candidate_board.heuristic()
+                    candidate_in_open = np.any([node[0] == candidate_board for node in open_nodes])
+                    candidate_in_closed = np.any([node[0] == candidate_board for node in closed_nodes])
+                    if not (candidate_in_open or candidate_in_closed):
+                        bisect.insort(open_nodes, (candidate_board, candidate_heuristic), key=lambda x: x[1])
+                    # Else se descarta el nodo no insertándolo en la lista de nodos abiertos
+        raise Exception('No solution found')
