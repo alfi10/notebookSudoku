@@ -183,3 +183,6 @@ class Sudoku:
                             successors.append(sudoku)
                     return successors
         raise Exception  # Nunca debería llegar aquí
+
+    def heuristic(self):
+        return np.sum(self.board_valids)
