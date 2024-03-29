@@ -3,6 +3,10 @@ import numpy as np
 from .sudoku import Sudoku
 
 
+def show_sudoku(sudoku: Sudoku):
+    print(sudoku)
+
+
 class SudokuSolver:
     def __init__(self, sudoku: Sudoku):
         self.sudoku = copy.deepcopy(sudoku)
@@ -13,12 +17,6 @@ class SudokuSolver:
         if len(empty_cells[0]) > 0:
             return np.array(list(zip(*empty_cells)))
         return None
-
-    def show_sudoku(self, sudoku: Sudoku = None):
-        if sudoku is None:
-            sudoku = self.sudoku
-            print('SUDOKU INICIAL:')
-        print(sudoku)
 
     def protosolver(self):
         sudoku = copy.deepcopy(self.sudoku)
