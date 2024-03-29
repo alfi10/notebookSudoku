@@ -72,13 +72,13 @@ class SudokuSolver:
         open_nodes = [sudoku]
         closed_nodes = []
         while open_nodes:
-            current = open_nodes.pop(0)
-            closed_nodes.append(current)
+            current = open_nodes.pop(0)  # 1.
+            closed_nodes.append(current)  # 2.
             if current.is_solved():
-                return current
+                return current  # 3.
             else:
-                succesors = current.get_successors()
-                open_nodes.extend(succesors)
+                succesors = current.get_successors()  # 4.
+                open_nodes.extend(succesors)  # 5.
         raise Exception('No solution found')
 
     def solve_coste_uniforme(self):
