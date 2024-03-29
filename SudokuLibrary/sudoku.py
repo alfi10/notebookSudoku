@@ -99,14 +99,14 @@ class Sudoku:
 
     def _update_board_valids(self, row_coord: int, col_coord: int, num: int, erase: bool = False):
         """
-        Actualiza los números válidos de la fila, columna y cuadrante correspondientes
-        Si erase, se añade el número a los válidos de filas, columnas y cuadrantes correspondientes
-        Si not erase, se quita directamente el número de los válidos de todas las filas, columnas y cuadrantes
+        Actualiza los números válidos de la fila, columna y cuadrante correspondientes.
+        Si erase, se añade el número a los válidos de filas, columnas y cuadrantes correspondientes.
+        Si not erase, se quita directamente el número de los válidos de todas las filas, columnas y cuadrantes.
 
-        :param row_coord: Coordenada de fila de la celda.
-        :param col_coord: Coordenada de columna de la celda.
-        :param num: Número a añadir o quitar de los válidos.
-        :param erase: Indica si se ha borrado el número de la celda. Si True, num es el borrado. Else, es el rellenado.
+        :param row_coord: Coordenada de fila de la celda
+        :param col_coord: Coordenada de columna de la celda
+        :param num: Número a añadir o quitar de los válidos
+        :param erase: Indica si se ha borrado el número de la celda. Si True, num es el borrado. Else, es el rellenado
         :return: None
         """
         # Comprobación de errores
