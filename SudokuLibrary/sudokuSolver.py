@@ -64,3 +64,18 @@ class SudokuSolver:
                 succesors = current.get_succesors()  # 4.1
                 open_nodes.extend(succesors)  # 4.2
         raise Exception('No solution found')
+
+    def solve_anchura(self):
+        # Tema 3, diapositiva 25
+        sudoku = copy.deepcopy(self.sudoku)
+        open_nodes = [sudoku]
+        closed_nodes = []
+        while open_nodes:
+            current = open_nodes.pop(0)
+            closed_nodes.append(current)
+            if current.is_solved():
+                return current
+            else:
+                succesors = current.get_succesors()
+                open_nodes.extend(succesors)
+        raise Exception('No solution found')
