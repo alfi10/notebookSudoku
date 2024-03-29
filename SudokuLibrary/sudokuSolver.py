@@ -82,9 +82,9 @@ class SudokuSolver:
         raise Exception('No solution found')
 
     def solve_coste_uniforme(self):
-        # Tema 3, diapositiva 39
+        # Tema 3, diapositiva 33
         sudoku = copy.deepcopy(self.sudoku)
-        open_nodes = [(sudoku, 0)]
+        open_nodes = [(sudoku, 0)]  # (tablero, coste)
         closed_nodes = []
         while open_nodes:
             current, cost = open_nodes.pop(0)  # 1.
@@ -111,17 +111,16 @@ class SudokuSolver:
                     )
                     if open_successor_node is not None:
                         candidate_cost_less_than_open_cost = candidate_cost < open_successor_node[1]
-                        if candidate_cost_less_than_open_cost:
-                            open_nodes.pop(iopen)  # 6.
-                            # Se inserta ordenadamente al final del bloque
-                        continue
+                        if not candidate_cost_less_than_open_cost:
+                            continue
+                        open_nodes.pop(iopen)  # 6.
+                        # Se inserta ordenadamente al final del bloque
 
                     bisect.insort(open_nodes, successor, key=lambda x: x[1])  # 7.
-
         raise Exception('No solution found')
 
     def solve_avara(self):
-        # Tema 3, diapositiva 45
+        # Tema 4, diapositiva 26
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [(sudoku, sudoku.heuristic())]
         closed_nodes = []
@@ -140,4 +139,43 @@ class SudokuSolver:
                     if not (candidate_in_open or candidate_in_closed):
                         bisect.insort(open_nodes, (candidate_board, candidate_heuristic), key=lambda x: x[1])
                     # Else se descarta el nodo no insertándolo en la lista de nodos abiertos
+        raise Exception('No solution found')
+
+    def solve_a_estrella(self):
+        # Tema 4, diapositiva 45
+        sudoku = copy.deepcopy(self.sudoku)
+        open_nodes = [(sudoku, 0, 0)]  # (tablero, coste, heurística)
+        closed_nodes = []
+        while open_nodes:
+            current, cost, heuristic = open_nodes.pop(0)  # 1.
+            closed_nodes.append((current, cost, heuristic))  # 2.
+            if current.is_solved():
+                return current  # 3.
+            else:
+                succesors = current.get_successors(cost)  # 4.
+                for successor in succesors:
+                    candidate_board, candidate_cost = successor
+                    candidate_heuristic = candidate_board.heuristic()
+
+                    # Si coste de successor es menor que el coste de la lista de cerrados, insertar en abiertos
+                    closed_successor_nodes = [node for node in closed_nodes if node[0] == candidate_board]
+                    candidate_cost_less_than_closed_costs = np.all(
+                        [candidate_cost < node[1] for node in closed_successor_nodes]
+                    )
+                    if closed_successor_nodes and not candidate_cost_less_than_closed_costs:
+                        continue  # 4.1
+                    # Else se insertará ordenadamente al final del bloque
+
+                    open_successor_node = next((node for node in open_nodes if node[0] == candidate_board), None)
+                    if open_successor_node is not None:
+                        candidate_cost_less_than_open_cost = candidate_cost < open_successor_node[1]
+                        if not candidate_cost_less_than_open_cost:
+                            continue
+                        open_nodes.remove(open_successor_node)  # 4.2
+                        # Se inserta ordenadamente al final del bloque
+
+                    bisect.insort(open_nodes,
+                                  (candidate_board, candidate_cost, candidate_heuristic),
+                                  key=lambda x: x[1] + x[2]
+                                  )  # 4.3
         raise Exception('No solution found')
