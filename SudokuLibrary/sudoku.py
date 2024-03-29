@@ -59,6 +59,14 @@ class Sudoku:
         return int(self.board[row_coord][col_coord])
 
     def _is_valid(self, row_coord: int, col_coord: int, num: int) -> bool:
+        """
+        Comprueba si un número es válido en una celda. Para ello, comprueba si el número ya está en la fila, columna o
+        cuadrante.
+        :param row_coord: Coordenada de fila (vertical)
+        :param col_coord: Coordenada de columna (horizontal)
+        :param num: Valor a comprobar si es válido
+        :return: True si el número es válido, False en caso contrario
+        """
         # Comprobación de errores
         if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
             raise ValueError('Invalid coordinates')
@@ -68,17 +76,25 @@ class Sudoku:
         # Comprobamos si la celda está rellena
         cell_number = self.get_cell(row_coord, col_coord)
         if cell_number != 0:
+            """
+            El número no supera la comprobación de validez, pero el estar implica que los superó cuando se puso.
+            
+            Si la celda tiene el número que estamos comprobando, devolvemos True. Hacemos esto para preservar la
+            equivalencia de la matriz de validos con el numero rellenado. Así, cuando una celda tiene un numero, la
+            matriz de validos tiene un True en la posición del número de la celda y el resto en False.
+            """
             return True if cell_number == num else False
-        # Comprobamos la fila y la columna
-        if (np.any(self.board[row_coord] == num) or
-                np.any(self.board[:, col_coord] == num)):
-            return False
-        # Comprobamos el cuadrante
+        # Comprobamos si el número está en la fila y en la columna
+        num_in_row = np.any(self.board[row_coord] == num)
+        num_in_col = np.any(self.board[:, col_coord] == num)
+        # Comprobamos si el número está en el cuadrante
         start_row = row_coord - row_coord % 3
         start_col = col_coord - col_coord % 3
-        if np.any(self.board[start_row:start_row + 3, start_col:start_col + 3] == num):
+        num_in_cuadrante = np.any(self.board[start_row:start_row + 3, start_col:start_col + 3] == num)
+        # Comprobación de validez
+        if num_in_row or num_in_col or num_in_cuadrante:
             return False
-
+        # Else es un número válido
         return True
 
     def _update_board_valids(self, row_coord: int, col_coord: int, num: int, erase: bool = False):
