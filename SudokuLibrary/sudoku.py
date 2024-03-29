@@ -15,15 +15,7 @@ class Sudoku:
         string = str()
         solution_path = self.solution_path
         string += 'Estado Inicial\n' if not solution_path else 'Camino de solución: {}\n'.format(solution_path)
-        for index_row, row in enumerate(self.board):
-            if index_row % 3 == 0:
-                string += ('-' * 31) + '\n'
-            for index_cell, cell in enumerate(row):
-                if index_cell % 3 == 0:
-                    string += '|'
-                string += ' {} '.format(cell)
-            string += '|\n'
-        string += ('-' * 31) + '\n'
+        string += self.board_string()
         return string
 
     def _generate_board(self):
@@ -44,6 +36,19 @@ class Sudoku:
         else:
             # Generamos un sudoku vacío. Pendiente de implementar de verdad
             return np.zeros((9, 9), dtype=int)
+
+    def board_string(self):
+        string = str()
+        for index_row, row in enumerate(self.board):
+            if index_row % 3 == 0:
+                string += ('-' * 31) + '\n'
+            for index_cell, cell in enumerate(row):
+                if index_cell % 3 == 0:
+                    string += '|'
+                string += ' {} '.format(cell)
+            string += '|\n'
+        string += ('-' * 31) + '\n'
+        return string
 
     def get_cell(self, row_coord: int, col_coord: int) -> int:
         """
