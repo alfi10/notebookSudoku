@@ -61,7 +61,7 @@ class SudokuSolver:
             if current.is_solved():
                 return current  # 3.
             else:  # 4.
-                succesors = current.get_succesors()  # 4.1
+                succesors = current.get_successors()  # 4.1
                 open_nodes.extend(succesors)  # 4.2
         raise Exception('No solution found')
 
@@ -76,6 +76,6 @@ class SudokuSolver:
             if current.is_solved():
                 return current
             else:
-                succesors = current.get_succesors()
+                succesors = current.get_successors()
                 open_nodes.extend(succesors)
         raise Exception('No solution found')

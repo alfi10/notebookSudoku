@@ -161,16 +161,25 @@ class Sudoku:
     def is_solved(self) -> bool:
         return np.all(self.board != 0)
 
-    def get_succesors(self):
-        sucessors = []
-        for irow in range(len(self.board_valids)):
-            for icol in range(len(self.board_valids[irow])):
+    def get_successors(self, cost: int = None):
+        successors = []
+        valids_row_length = self.board_valids.shape[0]
+        for irow in range(valids_row_length):
+            valids_column_length = self.board_valids.shape[1]
+            for icol in range(valids_column_length):
                 # Si el board está vacío, calculamos los posibles números para rellenar la celda
-                if np.sum(self.board[irow][icol]) == 0:
-                    possible_numbers = np.where(self.board_valids[irow][icol] == True)[0] + 1
+                board_cell = self.get_cell(irow, icol)
+                if board_cell == 0:
+                    # La matriz board_valids es booleana. Numpy trata True como 1 y False como 0
+                    possible_numbers = np.where(self.board_valids[irow][icol] == 1)[0] + 1
                     for num in possible_numbers:
                         sudoku = copy.deepcopy(self)
                         sudoku.fill_cell(irow, icol, num)
-                        sucessors.append(sudoku)
-                    return sucessors
+                        if cost is not None:  # Si cost no es None, devolvemos una tupla con el coste
+                            # Coste de un nodo: el número de hijos que puede generar el padre más el coste acumulado
+                            cost += possible_numbers.size
+                            successors.append((sudoku, cost))
+                        else:
+                            successors.append(sudoku)
+                    return successors
         raise Exception  # Nunca debería llegar aquí
