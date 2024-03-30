@@ -134,7 +134,7 @@ class Sudoku:
                 self.board_valids[row, col, num - 1] = (
                     self._is_valid(row, col, num)
                 ) if erase else erase  # Ver docstring
-        # Al agregar un número, se ha borrad de los válidos de la celda en la actualización de fila, columna y cuadrante
+        # Al agregar un número, se ha borrado de válidos de la celda en la actualización de fila, columna y cuadrante
         # Consideramos que, al haberlo puesto, es válido; por lo que lo añadimos a los válidos de la celda
         if not erase:
             self.board_valids[row_coord, col_coord, num - 1] = True
@@ -221,6 +221,10 @@ class Sudoku:
         :return: Lista de Sudoku sucesores o de tuplas (Sudoku, coste) sucesores si recibimos cost
         """
         successors = []
+        # Obten el número de validos por celda
+        valids_per_cell = np.sum(self.board_valids, axis=2)
+        if np.any(valids_per_cell == 0):  # Si el sudoku tiene una celda sin válidos, no genera hijos
+            return successors
         valids_row_length = self.board_valids.shape[0]
         for irow in range(valids_row_length):
             valids_column_length = self.board_valids.shape[1]
