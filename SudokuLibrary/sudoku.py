@@ -134,6 +134,10 @@ class Sudoku:
                 self.board_valids[row, col, num - 1] = (
                     self._is_valid(row, col, num)
                 ) if erase else erase  # Ver docstring
+        # Al agregar un número, se ha borrad de los válidos de la celda en la actualización de fila, columna y cuadrante
+        # Consideramos que, al haberlo puesto, es válido; por lo que lo añadimos a los válidos de la celda
+        if not erase:
+            self.board_valids[row_coord, col_coord, num - 1] = True
 
     def fill_cell(self, row_coord: int, col_coord: int, num: int) -> bool:
         """
