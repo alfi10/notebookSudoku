@@ -1,6 +1,7 @@
 import bisect
 import copy
 import numpy as np
+import time
 from .sudoku import Sudoku
 
 
@@ -82,7 +83,6 @@ class SudokuSolver:
         raise Exception('No solution found')
 
     def solve_coste_uniforme(self):
-        # Tema 3, diapositiva 33
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [(sudoku, 0)]  # (tablero, coste)
         closed_nodes = []
@@ -94,8 +94,8 @@ class SudokuSolver:
             else:
                 succesors = current.get_successors(cost)  # 4.
                 for successor in succesors:
-                    candidate_board, candidate_cost = successor
-                    closed_successor_nodes = [node for node in closed_nodes if node[0] == candidate_board]
+                    candidate_sudoku, candidate_cost = successor
+                    closed_successor_nodes = [node for node in closed_nodes if node[0] == candidate_sudoku]
                     candidate_cost_less_than_closed_costs = np.all(
                         [candidate_cost < node[1] for node in closed_successor_nodes]
                     )
@@ -106,7 +106,7 @@ class SudokuSolver:
                     iopen, open_successor_node = next(
                         (
                             (index, node) for index, node in enumerate(open_nodes)
-                            if node[0] == candidate_board
+                            if node[0] == candidate_sudoku
                         ), (None, None)
                     )
                     if open_successor_node is not None:
@@ -132,12 +132,12 @@ class SudokuSolver:
             else:
                 succesors = current.get_successors()  # 4.
                 for successor in succesors:
-                    candidate_board = successor
-                    candidate_heuristic = candidate_board.heuristic()
-                    candidate_in_open = np.any([node[0] == candidate_board for node in open_nodes])
-                    candidate_in_closed = np.any([node[0] == candidate_board for node in closed_nodes])
+                    candidate_sudoku = successor
+                    candidate_heuristic = candidate_sudoku.heuristic()
+                    candidate_in_open = np.any([node[0] == candidate_sudoku for node in open_nodes])
+                    candidate_in_closed = np.any([node[0] == candidate_sudoku for node in closed_nodes])
                     if not (candidate_in_open or candidate_in_closed):
-                        bisect.insort(open_nodes, (candidate_board, candidate_heuristic), key=lambda x: x[1])
+                        bisect.insort(open_nodes, (candidate_sudoku, candidate_heuristic), key=lambda x: x[1])
                     # Else se descarta el nodo no insertándolo en la lista de nodos abiertos
         raise Exception('No solution found')
 
@@ -154,11 +154,11 @@ class SudokuSolver:
             else:
                 succesors = current.get_successors(cost)  # 4.
                 for successor in succesors:
-                    candidate_board, candidate_cost = successor
-                    candidate_heuristic = candidate_board.heuristic()
+                    candidate_sudoku, candidate_cost = successor
+                    candidate_heuristic = candidate_sudoku.heuristic()
 
                     # Si coste de successor es menor que el coste de la lista de cerrados, insertar en abiertos
-                    closed_successor_nodes = [node for node in closed_nodes if node[0] == candidate_board]
+                    closed_successor_nodes = [node for node in closed_nodes if node[0] == candidate_sudoku]
                     candidate_cost_less_than_closed_costs = np.all(
                         [candidate_cost < node[1] for node in closed_successor_nodes]
                     )
@@ -166,7 +166,7 @@ class SudokuSolver:
                         continue  # 4.1
                     # Else se insertará ordenadamente al final del bloque
 
-                    open_successor_node = next((node for node in open_nodes if node[0] == candidate_board), None)
+                    open_successor_node = next((node for node in open_nodes if node[0] == candidate_sudoku), None)
                     if open_successor_node is not None:
                         candidate_cost_less_than_open_cost = candidate_cost < open_successor_node[1]
                         if not candidate_cost_less_than_open_cost:
@@ -175,7 +175,7 @@ class SudokuSolver:
                         # Se inserta ordenadamente al final del bloque
 
                     bisect.insort(open_nodes,
-                                  (candidate_board, candidate_cost, candidate_heuristic),
+                                  (candidate_sudoku, candidate_cost, candidate_heuristic),
                                   key=lambda x: x[1] + x[2]
                                   )  # 4.3
         raise Exception('No solution found')
