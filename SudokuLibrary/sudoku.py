@@ -39,7 +39,8 @@ class Sudoku:
 
     def board_string(self):
         string = str()
-        for index_row, row in enumerate(self.board):
+        raw_data = self._valids_to_board_data()
+        for index_row, row in enumerate(raw_data):
             if index_row % 3 == 0:
                 string += ('-' * 31) + '\n'
             for index_cell, cell in enumerate(row):
@@ -100,6 +101,54 @@ class Sudoku:
         if num_in_row or num_in_col or num_in_cuadrante:
             return False
         # Else es un número válido
+        return True
+
+    def _valids_to_board_data(self):
+        """
+        Devuelve una representación del tablero a partir de la matriz de validos. Si una celda tiene un solo True, se
+        rellena con el número correspondiente. Si tiene más de un True, se rellena con un 0. Si no tiene ningún True,
+        se deja una x.
+        :return: String con el tablero de sudoku
+        """
+        string = np.full((9, 9), 'x', dtype=str)
+        for row in range(9):
+            for col in range(9):
+                if np.sum(self.board_valids[row][col]) == 1:
+                    string[row][col] = str(np.where(self.board_valids[row][col] == 1)[0][0] + 1)
+                elif np.sum(self.board_valids[row][col]) > 1:
+                    string[row][col] = '0'
+                # Else: deja 'x' que representa visualmente que es un estado erroneo
+        return string
+
+    def is_solved(self) -> bool:
+        """
+        Comprueba si el sudoku es válido mirando board_valids. Si hay alguna celda con más de 1 True, alguna celda solo
+        Falses, alguna celda con True en un índice que sea True en otro índice de su misma fila, columna o cuadrante,
+        devuelve False. En caso contrario, devuelve True.
+        :return: True si el sudoku está resuelto, False en caso contrario
+        """
+        # Comprueba que cada celda tenga 1 True
+        total_trues = np.sum(self.board_valids)
+        size_rows = self.board_valids.shape[0]
+        size_cols = self.board_valids.shape[1]
+        required_trues = size_rows * size_cols
+        if total_trues != required_trues:
+            return False
+        # Comprueba que cada columna tenga un True por número sumando los arrays de cada columna
+        repeticiones_columnas = np.sum(self.board_valids, axis=0)
+        if np.any(repeticiones_columnas != 1):
+            return False
+        # Comprueba que cada fila tenga un True por número sumando los arrays de cada fila
+        repeticiones_filas = np.sum(self.board_valids, axis=1)
+        if np.any(repeticiones_filas != 1):
+            return False
+        # Comprueba que cada cuadrante tenga un True por número sumando los arrays de cada cuadrante
+        for row in range(0, 9, 3):
+            for col in range(0, 9, 3):
+                cuadrante = self.board_valids[row:row + 3, col:col + 3]
+                repeticiones_cuadrante = np.sum(cuadrante, axis=2)
+                if np.any(repeticiones_cuadrante != 1):
+                    return False
         return True
 
     def _update_board_valids(self, row_coord: int, col_coord: int, num: int, erase: bool = False):
@@ -213,8 +262,6 @@ class Sudoku:
         valids = np.array([self.get_cell_valids(row, col) for row in range(9) for col in range(9)])
         return valids.reshape((9, 9, 9))
 
-    def is_solved(self) -> bool:
-        return np.all(self.board != 0)
 
     def get_successors(self, cost: int = None):
         """
@@ -242,7 +289,7 @@ class Sudoku:
                         sudoku.fill_cell(irow, icol, num)
                         if cost is not None:  # Si cost no es None, devolvemos una tupla con el coste
                             # Coste de un nodo: el número de hijos que puede generar el padre más el coste acumulado
-                            cost += possible_numbers.size
+                            cost += possible_numbers.size - 1
                             successors.append((sudoku, cost))
                         else:
                             successors.append(sudoku)
@@ -250,7 +297,8 @@ class Sudoku:
         raise Exception('Nunca debería llegar aquí. Debe ser que el Sudoku no tiene solución')
 
     def heuristic(self):
-        return np.sum(self.board_valids)
+        # return np.sum(self.board_valids)
+        return np.multiply(self.board_valids, self.board_valids).sum()
 
     def _update_solution_path(self, row_coord: int, col_coord: int, num: int):
         """
