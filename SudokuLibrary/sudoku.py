@@ -213,16 +213,16 @@ class Sudoku:
 
         board = self.board
         board_valids = np.full((9, 9, 9), False, dtype=bool)
-        for row in range(board_valids.shape[0]):
-            for col in range(board_valids.shape[1]):
-                if board[row][col] != 0:  # Si la celda tiene un número, es válido
-                    board_valids[row][col][board[row][col] - 1] = True
+        for irow in range(board_valids.shape[0]):
+            for icol in range(board_valids.shape[1]):
+                if board[irow][icol] != 0:  # Si la celda tiene un número, es válido
+                    board_valids[irow][icol][board[irow][icol] - 1] = True
                 else:  # Si la celda está vacía, calculamos los números válidos
                     for num in range(1, 10):
                         # No podemos usar _is_valid porque comprueba la validez sobre board_valids y no está calculado
-                        validity_coords = self.get_row_col_cuadrant_coords(row, col)
+                        validity_coords = self.get_row_col_cuadrant_coords(irow, icol)
                         if all([board[row][col] != num for row, col in validity_coords]):
-                            board_valids[row][col][num - 1] = True
+                            board_valids[irow][icol][num - 1] = True
         return board_valids
 
     def get_successors(self, cost: int = None):
