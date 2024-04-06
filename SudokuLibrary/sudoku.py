@@ -9,7 +9,7 @@ class Sudoku:
     def __init__(self, board: np.ndarray[Any, np.dtype] = None, debug: bool = False):
         self.debug = debug
         self.board = self._generate_board() if board is None else board
-        self.board_valids = self.calculate_board_valids()
+        self.board_valids = self._calculate_board_valids()
         self.solution_path = []  # Lista de tuplas (row, col, num) con los pasos del camino hacia la solución
 
     def __str__(self):
@@ -200,26 +200,30 @@ class Sudoku:
             return True
         return False
 
-    def get_cell_valids(self, row_coord: int, col_coord: int) -> np.ndarray:
+    def _calculate_board_valids(self) -> np.ndarray:
         """
-        Devuelve los números válidos para rellenar una celda.
-        :param row_coord: Coordenada de fila de la celda
-        :param col_coord: Coordenada de columna de la celda
-        :return: np.ndarray de booleanos de 9 elementos. True si el número es válido, False en caso contrario
+        A partir de un board de sudoku inicial, calcula los números válidos para cada celda. Devuelve una matriz de
+        9x9x9 donde cada celda tiene un array de 9 elementos. Si el número es válido en la celda, el elemento del array
+        correspondiente es True. Si no es válido, es False.
+        :return:
         """
         # Comprobación de errores
-        if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
-            raise ValueError('Invalid coordinates')
+        if self.board is None:
+            raise ValueError('No board to calculate valids')
 
-        # Calculamos los números válidos para la celda
-        valids = np.zeros(9, dtype=bool)
-        for num in range(9):
-            valids[num] = self._is_valid(row_coord, col_coord, num + 1)
-        return valids
-
-    def calculate_board_valids(self) -> np.ndarray:
-        valids = np.array([self.get_cell_valids(row, col) for row in range(9) for col in range(9)])
-        return valids.reshape((9, 9, 9))
+        board = self.board
+        board_valids = np.full((9, 9, 9), False, dtype=bool)
+        for row in range(board_valids.shape[0]):
+            for col in range(board_valids.shape[1]):
+                if board[row][col] != 0:  # Si la celda tiene un número, es válido
+                    board_valids[row][col][board[row][col] - 1] = True
+                else:  # Si la celda está vacía, calculamos los números válidos
+                    for num in range(1, 10):
+                        # No podemos usar _is_valid porque comprueba la validez sobre board_valids y no está calculado
+                        validity_coords = self.get_row_col_cuadrant_coords(row, col)
+                        if all([board[row][col] != num for row, col in validity_coords]):
+                            board_valids[row][col][num - 1] = True
+        return board_valids
 
     def get_successors(self, cost: int = None):
         """
