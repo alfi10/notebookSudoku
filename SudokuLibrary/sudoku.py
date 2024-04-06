@@ -2,6 +2,7 @@
 import copy
 from typing import Any
 import numpy as np
+from itertools import product
 
 
 class Sudoku:
@@ -154,36 +155,42 @@ class Sudoku:
     def _update_board_valids(self, row_coord: int, col_coord: int, num: int, erase: bool = False):
         """
         Actualiza los números válidos de la fila, columna y cuadrante correspondientes. Se quita el número de los
-        válidos de todas las filas, columnas y cuadrantes.
+        válidos de todas las filas, columnas y cuadrantes. No se hace si el número no es válido en la celda coordenadas.
 
         :param row_coord: Coordenada de fila de la celda
         :param col_coord: Coordenada de columna de la celda
         :param num: Número a añadir o quitar de los válidos
-        :return: None
+        :return: True si se ha actualizado, False en caso contrario
         """
         # Comprobación de errores
         if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
             raise ValueError('Invalid coordinates')
-        if num < 0 or num > 9:
+        if num < 1 or num > 9:
             raise ValueError('Invalid number: {}'.format(num))
 
-        # Actualizamos los números válidos de la fila row_coord
-        for col in self.board_valids[row_coord]:
-            col[num - 1] = False
-        # Actualizamos los números válidos de la columna col_coord
-        for row in self.board_valids[:, col_coord]:
-            row[num - 1] = False
-        # Actualizamos los números válidos del cuadrante
-        start_row = row_coord - row_coord % 3
-        start_col = col_coord - col_coord % 3
-        for row in range(start_row, start_row + 3):
-            for col in range(start_col, start_col + 3):
-                self.board_valids[row, col, num - 1] = False
-        # Hemos borrado el num de row_coord, col_coord de valido. Lo ponemos y el resto los seteamos False
+        # Si el número no es válido en la celda, no se actualiza
+        if not self._is_valid(row_coord, col_coord, num):
+            return False
+        # Es válido. Actualizamos la celda sujeto
         # Los números que no son num de la celda son no válidos
         self.board_valids[row_coord, col_coord, np.arange(9)] = False
         # El número num de la celda es válido
         self.board_valids[row_coord, col_coord, num - 1] = True
+
+        # Calculamos las coordenadas de la fila, columna y cuadrante cuyas valideces vamos a actualizar
+        row = set(zip([row_coord] * 9, range(9)))  # Coordenadas de la fila
+        col = set(zip(range(9), [col_coord] * 9))  # Coordenadas de la columna
+        # Coordenadas del cuadrante
+        start_row = row_coord - row_coord % 3
+        start_col = col_coord - col_coord % 3
+        cuadrante = set(product(range(start_row, start_row + 3), range(start_col, start_col + 3)))
+        # Unimos las coordenadas y quitamos la de la celda sujeto
+        change_coords = row.union(col).union(cuadrante)
+        change_coords.remove((row_coord, col_coord))
+        # Actualizamos los números válidos de las coordenadas
+        for row, col in change_coords:
+            self.board_valids[row, col, num - 1] = False
+        return True
 
     def fill_cell(self, row_coord: int, col_coord: int, num: int) -> bool:
         """
