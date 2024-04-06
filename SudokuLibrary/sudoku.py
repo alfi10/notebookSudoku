@@ -57,18 +57,25 @@ class Sudoku:
         Devuelve el número de la celda en las coordenadas dadas de la matriz del sudoku.
         :param row_coord: Coordenada de fila de la celda (Vertical)
         :param col_coord: Coordenada de columna de la celda (Horizontal)
-        :return: El número almacenado en la celda de las coordenadas dadas.
+        :return: El número, 0 si hay varios válidos, -1 si no hay ninguno
         """
         # Comprobación de errores
         if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
             raise ValueError('Invalid coordinates')
 
-        return int(self.board[row_coord][col_coord])
+        cell_valids = self.board_valids[row_coord][col_coord]
+        if np.sum(cell_valids) == 1:
+            return np.where(cell_valids == 1)[0][0] + 1
+        elif np.sum(cell_valids) > 1:
+            return 0
+        # return -1
+        raise Exception('Error en la celda ({}, {})'.format(row, col))
 
     def _is_valid(self, row_coord: int, col_coord: int, num: int) -> bool:
         """
-        Comprueba si un número es válido en una celda. Para ello, comprueba si el número ya está en la fila, columna o
-        cuadrante.
+        Comprueba si un número es válido en una celda. Para ello comprueba dos cosas:
+        1.- si el número ya está en la fila, columna o cuadrante.
+        2.- si el número es válido en la celda según board_valids. Tiene que tener su posición 3a dimensión en True.
         :param row_coord: Coordenada de fila (vertical)
         :param col_coord: Coordenada de columna (horizontal)
         :param num: Valor a comprobar si es válido
@@ -80,10 +87,9 @@ class Sudoku:
         if num < 1 or num > 9:
             raise ValueError('Invalid number: {}'.format(num))
 
-        # Comprobamos si la celda está rellena
-        cell_number = self.get_cell(row_coord, col_coord)
-        if cell_number != 0:  # Si tiene número, es válido si es el mismo que el que se quiere comprobar
-            return True if cell_number == num else False
+        # Comprobamos si tiene posición número-1 de coordenadas True
+        if not self.board_valids[row_coord, col_coord, num - 1]:
+            return False
         # Calculamos las coordenadas de la fila, columna y cuadrante cuyas valideces vamos a comprobar
         validity_coords = self.get_row_col_cuadrant_coords(row_coord, col_coord)
         for row, col in validity_coords:
@@ -160,21 +166,23 @@ class Sudoku:
         if not self._is_valid(row_coord, col_coord, num):
             return False
         # Es válido. Actualizamos la celda sujeto
-        # Los números que no son num de la celda son no válidos
-        self.board_valids[row_coord, col_coord, np.arange(9)] = False
-        # El número num de la celda es válido
-        self.board_valids[row_coord, col_coord, num - 1] = True
+        self.board_valids[row_coord, col_coord, np.arange(9)] = False  # Los números no num de la celda son no válidos
+        self.board_valids[row_coord, col_coord, num - 1] = True  # El número num de la celda es válido
 
         # Calculamos las coordenadas de la fila, columna y cuadrante cuyas valideces vamos a actualizar
         change_coords = self.get_row_col_cuadrant_coords(row_coord, col_coord)
         # Actualizamos los números válidos de las coordenadas
         for row, col in change_coords:
             self.board_valids[row, col, num - 1] = False
+            # Puede generarse una nueva celda numerada. Hay que comprobar si es válida
+            nuevo_num = self.get_cell(row, col)
+            if nuevo_num != 0 and not self._is_valid(row, col, nuevo_num):
+                return False
         return True
 
     def fill_cell(self, row_coord: int, col_coord: int, num: int) -> bool:
         """
-        Rellena una celda con un número si es válido en ese momento.
+        Rellena una celda con un número. Si el resultado es válido devuelve True y, si no, False.
         :param row_coord: Coordenada de fila de la celda
         :param col_coord: Coordenada de columna de la celda
         :param num: Número a rellenar en la celda
@@ -190,15 +198,12 @@ class Sudoku:
                              .format(num, row_coord, col_coord, self.get_cell(row_coord, col_coord))
                              )
 
-        # Rellenamos la celda si el valor es válido en este momento
-        if self._is_valid(row_coord, col_coord, num):
-            self.board[row_coord][col_coord] = num
-            # Borramos el número añadido de los válidos correspondientes
-            self._update_board_valids(row_coord, col_coord, num)
-            # Agregamos el paso al camino hacia la solución
+        # Rellenamos la celda
+        if self._update_board_valids(row_coord, col_coord, num):
+            # Si el número es válido, Agregamos paso al camino hacia la solución y devolvemos True
             self._update_solution_path(row_coord, col_coord, num)
             return True
-        return False
+        return False  # Se ha rellenado y tenemos un sudoku invalido. Devuelve False
 
     def _calculate_board_valids(self) -> np.ndarray:
         """
@@ -248,13 +253,13 @@ class Sudoku:
                     possible_numbers = np.where(self.board_valids[irow][icol] == 1)[0] + 1
                     for num in possible_numbers:
                         sudoku = copy.deepcopy(self)
-                        sudoku.fill_cell(irow, icol, num)
-                        if cost is not None:  # Si cost no es None, devolvemos una tupla con el coste
-                            # Coste de un nodo: el número de hijos que puede generar el padre más el coste acumulado
-                            cost += possible_numbers.size - 1
-                            successors.append((sudoku, cost))
-                        else:
-                            successors.append(sudoku)
+                        if sudoku.fill_cell(irow, icol, num):  # Se hace el fill. Si ha dado un estado válido
+                            if cost is not None:  # Si cost no es None, devolvemos una tupla con el coste
+                                # Coste de un nodo: el número de hijos que puede generar el padre más el coste acumulado
+                                cost += possible_numbers.size - 1
+                                successors.append((sudoku, cost))
+                            else:  # Si cost es None, devolvemos solo el sudoku sucesor
+                                successors.append(sudoku)
                     return successors
         raise Exception('Nunca debería llegar aquí. Debe ser que el Sudoku no tiene solución')
 
