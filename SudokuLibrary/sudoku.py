@@ -82,25 +82,13 @@ class Sudoku:
 
         # Comprobamos si la celda está rellena
         cell_number = self.get_cell(row_coord, col_coord)
-        if cell_number != 0:
-            """
-            El número no supera la comprobación de validez, pero el estar implica que los superó cuando se puso.
-            
-            Si la celda tiene el número que estamos comprobando, devolvemos True. Hacemos esto para preservar la
-            equivalencia de la matriz de validos con el numero rellenado. Así, cuando una celda tiene un numero, la
-            matriz de validos tiene un True en la posición del número de la celda y el resto en False.
-            """
+        if cell_number != 0:  # Si tiene número, es válido si es el mismo que el que se quiere comprobar
             return True if cell_number == num else False
-        # Comprobamos si el número está en la fila y en la columna
-        num_in_row = np.any(self.board[row_coord] == num)
-        num_in_col = np.any(self.board[:, col_coord] == num)
-        # Comprobamos si el número está en el cuadrante
-        start_row = row_coord - row_coord % 3
-        start_col = col_coord - col_coord % 3
-        num_in_cuadrante = np.any(self.board[start_row:start_row + 3, start_col:start_col + 3] == num)
-        # Comprobación de validez
-        if num_in_row or num_in_col or num_in_cuadrante:
-            return False
+        # Calculamos las coordenadas de la fila, columna y cuadrante cuyas valideces vamos a comprobar
+        validity_coords = self.get_row_col_cuadrant_coords(row_coord, col_coord)
+        for row, col in validity_coords:
+            if self.get_cell(row, col) == num:
+                return False
         # Else es un número válido
         return True
 
@@ -152,7 +140,7 @@ class Sudoku:
                     return False
         return True
 
-    def _update_board_valids(self, row_coord: int, col_coord: int, num: int, erase: bool = False):
+    def _update_board_valids(self, row_coord: int, col_coord: int, num: int):
         """
         Actualiza los números válidos de la fila, columna y cuadrante correspondientes. Se quita el número de los
         válidos de todas las filas, columnas y cuadrantes. No se hace si el número no es válido en la celda coordenadas.
@@ -178,15 +166,7 @@ class Sudoku:
         self.board_valids[row_coord, col_coord, num - 1] = True
 
         # Calculamos las coordenadas de la fila, columna y cuadrante cuyas valideces vamos a actualizar
-        row = set(zip([row_coord] * 9, range(9)))  # Coordenadas de la fila
-        col = set(zip(range(9), [col_coord] * 9))  # Coordenadas de la columna
-        # Coordenadas del cuadrante
-        start_row = row_coord - row_coord % 3
-        start_col = col_coord - col_coord % 3
-        cuadrante = set(product(range(start_row, start_row + 3), range(start_col, start_col + 3)))
-        # Unimos las coordenadas y quitamos la de la celda sujeto
-        change_coords = row.union(col).union(cuadrante)
-        change_coords.remove((row_coord, col_coord))
+        change_coords = self.get_row_col_cuadrant_coords(row_coord, col_coord)
         # Actualizamos los números válidos de las coordenadas
         for row, col in change_coords:
             self.board_valids[row, col, num - 1] = False
@@ -312,3 +292,28 @@ class Sudoku:
                     raise ValueError('No se encontró el paso a eliminar')
             else:  # El paso a eliminar es el último. Pop
                 self.solution_path.pop()
+
+    @staticmethod
+    def get_row_col_cuadrant_coords(row_coord: int, col_coord: int):
+        """
+        Calcula las coordenadas correspondientes a la misma  fila, misma columna y mismo cuadrante de unas coordenadas
+        dadas. Devuelve un conjunto con las coordenadas de las celdas menos las coordenadas dadas.
+        :param row_coord: Coordenada de fila de la celda
+        :param col_coord: Coordenada de columna de la celda
+        :return: Tupla con las coordenadas de la fila, columna y cuadrante similares a las dadas
+        """
+        # Comprobación de errores
+        if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
+            raise ValueError('Invalid coordinates: (X: {}, Y: {})'.format(row_coord, col_coord))
+
+        # Calculamos las coordenadas de la fila, columna y cuadrante
+        row = set(zip([row_coord] * 9, range(9)))  # Coordenadas de la fila
+        col = set(zip(range(9), [col_coord] * 9))  # Coordenadas de la columna
+        # Coordenadas del cuadrante
+        start_row = row_coord - row_coord % 3
+        start_col = col_coord - col_coord % 3
+        cuadrante = set(product(range(start_row, start_row + 3), range(start_col, start_col + 3)))
+        # Unimos las coordenadas y quitamos la de la celda sujeto
+        result = row.union(col).union(cuadrante)
+        result.remove((row_coord, col_coord))
+        return result
