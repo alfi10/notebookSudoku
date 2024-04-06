@@ -219,28 +219,6 @@ class Sudoku:
             return True
         return False
 
-    def clear_cell(self, row_coord: int, col_coord: int):
-        """
-        Borra el número de una celda si no está vacía.
-        :param row_coord: Coordenada de fila de la celda
-        :param col_coord: Coordenada de columna de la celda
-        :return: None
-        """
-        # Comprobación de errores
-        if row_coord < 0 or row_coord > 8 or col_coord < 0 or col_coord > 8:
-            raise ValueError('Invalid coordinates')
-        # Guardamos el número de la celda que vamos a vaciar
-        num = self.get_cell(row_coord, col_coord)
-        if num == 0:
-            raise ValueError('Cell ({}, {}) already empty'.format(row_coord, col_coord))
-
-        # Vaciamos la celda
-        self.board[row_coord][col_coord] = 0
-        # Restauramos el número borrado a los válidos correspondientes
-        self._update_board_valids(row_coord, col_coord, num, erase=True)
-        # Eliminamos el paso del camino hacia la solución
-        self._update_solution_path(row_coord, col_coord, 0)
-
     def get_cell_valids(self, row_coord: int, col_coord: int) -> np.ndarray:
         """
         Devuelve los números válidos para rellenar una celda.
@@ -261,7 +239,6 @@ class Sudoku:
     def calculate_board_valids(self) -> np.ndarray:
         valids = np.array([self.get_cell_valids(row, col) for row in range(9) for col in range(9)])
         return valids.reshape((9, 9, 9))
-
 
     def get_successors(self, cost: int = None):
         """
