@@ -68,8 +68,7 @@ class Sudoku:
             return np.where(cell_valids == 1)[0][0] + 1
         elif np.sum(cell_valids) > 1:
             return 0
-        # return -1
-        raise Exception('Error en la celda ({}, {})'.format(row, col))
+        raise Exception('Error en la celda ({}, {})'.format(row_coord, col_coord))
 
     def _is_valid(self, row_coord: int, col_coord: int, num: int) -> bool:
         """
@@ -171,13 +170,21 @@ class Sudoku:
 
         # Calculamos las coordenadas de la fila, columna y cuadrante cuyas valideces vamos a actualizar
         change_coords = self.get_row_col_cuadrant_coords(row_coord, col_coord)
+        # Eliminamos las coordenadas redundantes. Si una celda ya tiene 1 número, no es necesario comprobarla
+        redundant_coords = set()
+        for row, col in change_coords:
+            e = np.sum(self.board_valids[row, col]) == 1
+            if e:
+                redundant_coords.add((row, col))
+        change_coords = change_coords - redundant_coords
         # Actualizamos los números válidos de las coordenadas
         for row, col in change_coords:
             self.board_valids[row, col, num - 1] = False
             # Puede generarse una nueva celda numerada. Hay que comprobar si es válida
             nuevo_num = self.get_cell(row, col)
-            if nuevo_num != 0 and not self._is_valid(row, col, nuevo_num):
-                return False
+            if nuevo_num != 0:
+                if not self._is_valid(row, col, nuevo_num):
+                    return False
         return True
 
     def fill_cell(self, row_coord: int, col_coord: int, num: int) -> bool:
