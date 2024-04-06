@@ -153,14 +153,12 @@ class Sudoku:
 
     def _update_board_valids(self, row_coord: int, col_coord: int, num: int, erase: bool = False):
         """
-        Actualiza los números válidos de la fila, columna y cuadrante correspondientes.
-        Si erase, se añade el número a los válidos de filas, columnas y cuadrantes correspondientes.
-        Si not erase, se quita directamente el número de los válidos de todas las filas, columnas y cuadrantes.
+        Actualiza los números válidos de la fila, columna y cuadrante correspondientes. Se quita el número de los
+        válidos de todas las filas, columnas y cuadrantes.
 
         :param row_coord: Coordenada de fila de la celda
         :param col_coord: Coordenada de columna de la celda
         :param num: Número a añadir o quitar de los válidos
-        :param erase: Indica si se ha borrado el número de la celda. Si True, num es el borrado. Else, es el rellenado
         :return: None
         """
         # Comprobación de errores
@@ -171,25 +169,21 @@ class Sudoku:
 
         # Actualizamos los números válidos de la fila row_coord
         for col in self.board_valids[row_coord]:
-            col[num - 1] = self._is_valid(row_coord, col_coord, num) if erase else erase  # Ver docstring
+            col[num - 1] = False
         # Actualizamos los números válidos de la columna col_coord
         for row in self.board_valids[:, col_coord]:
-            row[num - 1] = self._is_valid(row_coord, col_coord, num) if erase else erase  # Ver docstring
+            row[num - 1] = False
         # Actualizamos los números válidos del cuadrante
         start_row = row_coord - row_coord % 3
         start_col = col_coord - col_coord % 3
         for row in range(start_row, start_row + 3):
             for col in range(start_col, start_col + 3):
-                self.board_valids[row, col, num - 1] = (
-                    self._is_valid(row, col, num)
-                ) if erase else erase  # Ver docstring
-        # Al agregar un número, se ha borrado de válidos de la celda en la actualización de fila, columna y cuadrante
-        # Consideramos que, al haberlo puesto, es válido; por lo que lo añadimos a los válidos de la celda
-        if not erase:
-            # Los números que no son num de la celda son no válidos
-            self.board_valids[row_coord, col_coord, np.arange(9)] = False
-            # El número num de la celda es válido
-            self.board_valids[row_coord, col_coord, num - 1] = True
+                self.board_valids[row, col, num - 1] = False
+        # Hemos borrado el num de row_coord, col_coord de valido. Lo ponemos y el resto los seteamos False
+        # Los números que no son num de la celda son no válidos
+        self.board_valids[row_coord, col_coord, np.arange(9)] = False
+        # El número num de la celda es válido
+        self.board_valids[row_coord, col_coord, num - 1] = True
 
     def fill_cell(self, row_coord: int, col_coord: int, num: int) -> bool:
         """
