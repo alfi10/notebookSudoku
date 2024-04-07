@@ -191,8 +191,6 @@ class SudokuSolver:
         empty_cells = np.argwhere(valids_cells > 1)
         for cell in empty_cells:
             row, col = cell
-            if row == 0 and col == 1:
-                pass
             cell_valids = sudoku.board_valids[row, col]
             # Suma los válidos de cada número por fila, columna y cuadrante
             row_valids = sudoku.board_valids[row, :, :].sum(axis=0)
