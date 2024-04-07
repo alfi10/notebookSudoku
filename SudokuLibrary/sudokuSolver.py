@@ -8,10 +8,36 @@ def show_sudoku(sudoku: Sudoku):
     print(sudoku)
 
 
+def _restrictions(sudoku: Sudoku):
+    # Última celda restante
+    valids_cells = np.sum(sudoku.board_valids, axis=2)
+    empty_cells = np.argwhere(valids_cells > 1)
+    for cell in empty_cells:
+        row, col = cell
+        cell_valids = sudoku.board_valids[row, col]
+        # Suma los válidos de cada número por fila, columna y cuadrante
+        row_valids = sudoku.board_valids[row, :, :].sum(axis=0)
+        col_valids = sudoku.board_valids[:, col, :].sum(axis=0)
+        start_row = row - row % 3
+        start_col = col - col % 3
+        square_valids = sudoku.board_valids[start_row:start_row + 3, start_col:start_col + 3, :]
+        square_valids = np.sum(np.sum(square_valids, axis=0), axis=0)
+        # Multiplico las sumas de validos por los validos de la celda candidata
+        cellxrow = np.multiply(row_valids, cell_valids)
+        cellxcol = np.multiply(col_valids, cell_valids)
+        cellxsqr = np.multiply(square_valids, cell_valids)
+        # Resultado será 0, no era válido, o la suma. Si es 1, era el único válido del sector y cumple restricción
+        for cellxsector in [cellxrow, cellxcol, cellxsqr]:
+            if np.any(cellxsector == 1):
+                num = np.argwhere(cellxsector == 1)[0][0] + 1
+                sudoku.fill_cell(row, col, num)
+                break
+    return sudoku
+
+
 class SudokuSolver:
     def __init__(self, sudoku: Sudoku):
         self.sudoku = copy.deepcopy(sudoku)
-        self.operations_applied = np.array([], dtype=int)
 
     def _find_empty_cells(self):
         empty_cells = np.where(self.sudoku.board == 0)
@@ -175,7 +201,7 @@ class SudokuSolver:
         while not solved:
             ciclos += 1
             sudoku_before = copy.deepcopy(sudoku)
-            self._restrictions(sudoku)
+            _restrictions(sudoku)
             if sudoku.is_solved():
                 if measure:
                     print(f'Ciclos: {ciclos}')
@@ -184,29 +210,3 @@ class SudokuSolver:
                 print(f'Ciclos: {ciclos}')
                 print(sudoku.board_string())
                 raise Exception('No más avances posibles')
-
-    def _restrictions(self, sudoku: Sudoku):
-        # Última celda restante
-        valids_cells = np.sum(sudoku.board_valids, axis=2)
-        empty_cells = np.argwhere(valids_cells > 1)
-        for cell in empty_cells:
-            row, col = cell
-            cell_valids = sudoku.board_valids[row, col]
-            # Suma los válidos de cada número por fila, columna y cuadrante
-            row_valids = sudoku.board_valids[row, :, :].sum(axis=0)
-            col_valids = sudoku.board_valids[:, col, :].sum(axis=0)
-            start_row = row - row % 3
-            start_col = col - col % 3
-            square_valids = sudoku.board_valids[start_row:start_row + 3, start_col:start_col + 3, :]
-            square_valids = np.sum(np.sum(square_valids, axis=0), axis=0)
-            # Multiplico las sumas de validos por los validos de la celda candidata
-            cellxrow = np.multiply(row_valids, cell_valids)
-            cellxcol = np.multiply(col_valids, cell_valids)
-            cellxsqr = np.multiply(square_valids, cell_valids)
-            # Resultado será 0, no era válido, o la suma. Si es 1, era el único válido del sector y cumple restricción
-            for cellxsector in [cellxrow, cellxcol, cellxsqr]:
-                if np.any(cellxsector == 1):
-                    num = np.argwhere(cellxsector == 1)[0][0] + 1
-                    sudoku.fill_cell(row, col, num)
-                    break
-        return sudoku
