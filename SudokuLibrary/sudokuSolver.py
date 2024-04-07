@@ -1,7 +1,6 @@
 import bisect
 import copy
 import numpy as np
-import time
 from .sudoku import Sudoku
 
 
@@ -20,44 +19,56 @@ class SudokuSolver:
             return np.array(list(zip(*empty_cells)))
         return None
 
-    def solve_profundidad(self):
+    def solve_profundidad(self, measure=False):
         # Tema 3, diapositiva 42
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [sudoku]
         closed_nodes = []
+        ciclos = 1
         while open_nodes:
+            ciclos += 1
             current = open_nodes.pop()  # 1.
             closed_nodes.append(current)  # 2.
             if current.is_solved():
+                if measure:
+                    print(f'Ciclos: {ciclos}')
                 return current  # 3.
             else:  # 4.
                 succesors = current.get_successors()  # 4.1
                 open_nodes.extend(succesors)  # 4.2
         raise Exception('No solution found')
 
-    def solve_anchura(self):
+    def solve_anchura(self, measure=False):
         # Tema 3, diapositiva 25
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [sudoku]
         closed_nodes = []
+        ciclos = 1
         while open_nodes:
+            ciclos += 1
             current = open_nodes.pop(0)  # 1.
             closed_nodes.append(current)  # 2.
             if current.is_solved():
+                if measure:
+                    print(f'Ciclos: {ciclos}')
                 return current  # 3.
             else:
                 succesors = current.get_successors()  # 4.
                 open_nodes.extend(succesors)  # 5.
         raise Exception('No solution found')
 
-    def solve_coste_uniforme(self):
+    def solve_coste_uniforme(self, measure=False):
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [(sudoku, 0)]  # (tablero, coste)
         closed_nodes = []
+        ciclos = 1
         while open_nodes:
+            ciclos += 1
             current, cost = open_nodes.pop(0)  # 1.
             closed_nodes.append((current, cost))  # 2.
             if current.is_solved():
+                if measure:
+                    print(f'Ciclos: {ciclos}')
                 return current  # 3.
             else:
                 succesors = current.get_successors(cost)  # 4.
@@ -87,15 +98,19 @@ class SudokuSolver:
                     bisect.insort(open_nodes, successor, key=lambda x: x[1])  # 7.
         raise Exception('No solution found')
 
-    def solve_avara(self):
+    def solve_avara(self, measure=False):
         # Tema 4, diapositiva 26
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [(sudoku, sudoku.heuristic())]
         closed_nodes = []
+        ciclos = 1
         while open_nodes:
+            ciclos += 1
             current, heuristic = open_nodes.pop(0)  # 1.
             closed_nodes.append((current, heuristic))  # 2.
             if current.is_solved():
+                if measure:
+                    print(f'Ciclos: {ciclos}')
                 return current  # 3.
             else:
                 succesors = current.get_successors()  # 4.
@@ -109,15 +124,19 @@ class SudokuSolver:
                     # Else se descarta el nodo no insertándolo en la lista de nodos abiertos
         raise Exception('No solution found')
 
-    def solve_a_estrella(self):
+    def solve_a_estrella(self, measure=False):
         # Tema 4, diapositiva 45
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [(sudoku, 0, 0)]  # (tablero, coste, heurística)
         closed_nodes = []
+        ciclos = 1
         while open_nodes:
+            ciclos += 1
             current, cost, heuristic = open_nodes.pop(0)  # 1.
             closed_nodes.append((current, cost, heuristic))  # 2.
             if current.is_solved():
+                if measure:
+                    print(f'Ciclos: {ciclos}')
                 return current  # 3.
             else:
                 succesors = current.get_successors(cost)  # 4.
