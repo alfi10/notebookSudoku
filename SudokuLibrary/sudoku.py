@@ -245,10 +245,6 @@ class Sudoku:
         :return: Lista de Sudoku sucesores o de tuplas (Sudoku, coste) sucesores si recibimos cost
         """
         successors = []
-        # Obten el número de validos por celda
-        valids_per_cell = np.sum(self.board_valids, axis=2)
-        if np.any(valids_per_cell == 0):  # Si el sudoku tiene una celda sin válidos, no genera hijos
-            return successors
         valids_row_length = self.board_valids.shape[0]
         for irow in range(valids_row_length):
             valids_column_length = self.board_valids.shape[1]
