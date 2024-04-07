@@ -245,26 +245,24 @@ class Sudoku:
         :return: Lista de Sudoku sucesores o de tuplas (Sudoku, coste) sucesores si recibimos cost
         """
         successors = []
-        valids_row_length = self.board_valids.shape[0]
-        for irow in range(valids_row_length):
-            valids_column_length = self.board_valids.shape[1]
-            for icol in range(valids_column_length):
-                # Si el board está vacío, calculamos los posibles números para rellenar la celda
-                board_cell = self.get_cell(irow, icol)
-                if board_cell == 0:
-                    # La matriz board_valids es booleana. Numpy trata True como 1 y False como 0
-                    possible_numbers = np.where(self.board_valids[irow][icol] == 1)[0] + 1
-                    for num in possible_numbers:
-                        sudoku = copy.deepcopy(self)
-                        if sudoku.fill_cell(irow, icol, num):  # Se hace el fill. Si ha dado un estado válido
-                            if cost is not None:  # Si cost no es None, devolvemos una tupla con el coste
-                                # Coste de un nodo: el número de hijos que puede generar el padre más el coste acumulado
-                                cost += possible_numbers.size - 1
-                                successors.append((sudoku, cost))
-                            else:  # Si cost es None, devolvemos solo el sudoku sucesor
-                                successors.append(sudoku)
-                    return successors
-        raise Exception('Nunca debería llegar aquí. Debe ser que el Sudoku no tiene solución')
+        valids_sum_cell = np.sum(self.board_valids, axis=2)
+        for num_valids in range(2, 10):
+            open_node_candidates = np.argwhere(valids_sum_cell == num_valids)
+            if open_node_candidates.size > 0:
+                row, col = open_node_candidates[0]
+                # La matriz board_valids es booleana. Numpy trata True como 1 y False como 0
+                possible_numbers = np.where(self.board_valids[row][col] == 1)[0] + 1
+                for num in possible_numbers:
+                    sudoku = copy.deepcopy(self)
+                    if sudoku.fill_cell(row, col, num):  # Se hace el fill. Si ha dado un estado válido
+                        if cost is not None:  # Si cost no es None, devolvemos una tupla con el coste
+                            # Coste de un nodo: el número de hijos que puede generar el padre más el coste acumulado
+                            cost += possible_numbers.size - 1
+                            successors.append((sudoku, cost))
+                        else:  # Si cost es None, devolvemos solo el sudoku sucesor
+                            successors.append(sudoku)
+                return successors
+        raise Exception('get_succesors: el estado evaluado no ha generado hijos')
 
     def heuristic(self):
         # return np.sum(self.board_valids)
