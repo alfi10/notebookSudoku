@@ -8,7 +8,8 @@ def show_sudoku(sudoku: Sudoku):
     print(sudoku)
 
 
-def _last_possible_cell(sudoku: Sudoku, ciclos: int):
+def _last_possible_cell(sudoku: Sudoku,):
+    ciclos = 0
     # Última celda restante
     filled_cell_on_iteration = True
     while filled_cell_on_iteration:
@@ -41,6 +42,8 @@ def _last_possible_cell(sudoku: Sudoku, ciclos: int):
                 if np.any(cellxsector == 1):
                     num = np.argwhere(cellxsector == 1)[0][0] + 1
                     filled_cell_on_iteration = sudoku.fill_cell(row, col, num)
+                    if filled_cell_on_iteration:
+                        pass
                     break
     return ciclos
 
@@ -49,10 +52,11 @@ def _obvious_pairs(sudoku):
     pass
 
 
-def _restrictions(sudoku: Sudoku, ciclos: int):
+def _restrictions(sudoku: Sudoku):
+    ciclos = 0
     # Última celda libre -> Implícito
     # Último número posible en celda -> Implícito
-    ciclos += _last_possible_cell(sudoku, ciclos)  # Última celda restante
+    ciclos += _last_possible_cell(sudoku)  # Última celda restante
     # Sencillos obvios -> Implícito
     _obvious_pairs(sudoku)  # Parejas obvias
 
@@ -218,7 +222,7 @@ class SudokuSolver:
         ciclos = 0
         while not solved:
             sudoku_before = copy.deepcopy(sudoku)
-            ciclos += _restrictions(sudoku, ciclos)
+            ciclos += _restrictions(sudoku)
             if sudoku.is_solved():
                 if measure:
                     print(f'Ciclos: {ciclos}')
