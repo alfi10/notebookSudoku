@@ -8,49 +8,67 @@ def show_sudoku(sudoku: Sudoku):
     print(sudoku)
 
 
-def _restrictions(sudoku: Sudoku):
+def _last_possible_cell(sudoku: Sudoku, ciclos: int):
     # Última celda restante
-    valids_cells = np.sum(sudoku.board_valids, axis=2)
-    empty_cells = np.argwhere(valids_cells > 1)
-    for cell in empty_cells:
-        row, col = cell
-        cell_valids = sudoku.board_valids[row, col]
-        # Suma los válidos de cada número por fila, columna y cuadrante
-        row_valids = sudoku.board_valids[row, :, :].sum(axis=0)
-        col_valids = sudoku.board_valids[:, col, :].sum(axis=0)
-        start_row = row - row % 3
-        start_col = col - col % 3
-        square_valids = sudoku.board_valids[start_row:start_row + 3, start_col:start_col + 3, :]
-        square_valids = np.sum(np.sum(square_valids, axis=0), axis=0)
-        # Multiplico las sumas de validos por los validos de la celda candidata
-        cellxrow = np.multiply(row_valids, cell_valids)
-        cellxcol = np.multiply(col_valids, cell_valids)
-        cellxsqr = np.multiply(square_valids, cell_valids)
-        # Resultado será 0, no era válido, o la suma. Si es 1, era el único válido del sector y cumple restricción
-        for cellxsector in [cellxrow, cellxcol, cellxsqr]:
-            if np.any(cellxsector == 1):
-                num = np.argwhere(cellxsector == 1)[0][0] + 1
-                sudoku.fill_cell(row, col, num)
-                break
-    return sudoku
+    filled_cell_on_iteration = True
+    while filled_cell_on_iteration:
+        ciclos += 1  # Contador de ciclos
+        # Empieza en False. Si se rellena alguna celda, set True y se vuelve a iterar
+        filled_cell_on_iteration = False
+        # Calcula las celdas vacías
+        valids_cells = np.sum(sudoku.board_valids, axis=2)
+        empty_cells = np.argwhere(valids_cells > 1)
+        # Itera sobre ellas
+        for cell in empty_cells:
+            row, col = cell
+            if sudoku.get_cell(row, col) != 0:  # Si ya está rellena, pasa a la siguiente
+                # Esto ocurre cuando se ha rellenado alguna celda en la iteración
+                continue
+            cell_valids = sudoku.board_valids[row, col]
+            # Suma los válidos de cada número por fila, columna y cuadrante
+            row_valids = sudoku.board_valids[row, :, :].sum(axis=0)
+            col_valids = sudoku.board_valids[:, col, :].sum(axis=0)
+            start_row = row - row % 3
+            start_col = col - col % 3
+            square_valids = sudoku.board_valids[start_row:start_row + 3, start_col:start_col + 3, :]
+            square_valids = np.sum(np.sum(square_valids, axis=0), axis=0)
+            # Multiplico las sumas de validos por los validos de la celda candidata
+            cellxrow = np.multiply(row_valids, cell_valids)
+            cellxcol = np.multiply(col_valids, cell_valids)
+            cellxsqr = np.multiply(square_valids, cell_valids)
+            # Resultado será 0, no era válido, o la suma. Si es 1, era el único válido del sector y cumple restricción
+            for cellxsector in [cellxrow, cellxcol, cellxsqr]:
+                if np.any(cellxsector == 1):
+                    num = np.argwhere(cellxsector == 1)[0][0] + 1
+                    filled_cell_on_iteration = sudoku.fill_cell(row, col, num)
+                    break
+    return ciclos
+
+
+def _obvious_pairs(sudoku):
+    pass
+
+
+def _restrictions(sudoku: Sudoku, ciclos: int):
+    # Última celda libre -> Implícito
+    # Último número posible en celda -> Implícito
+    ciclos += _last_possible_cell(sudoku, ciclos)  # Última celda restante
+    # Sencillos obvios -> Implícito
+    _obvious_pairs(sudoku)  # Parejas obvias
+
+    return ciclos
 
 
 class SudokuSolver:
     def __init__(self, sudoku: Sudoku):
         self.sudoku = copy.deepcopy(sudoku)
 
-    def _find_empty_cells(self):
-        empty_cells = np.where(self.sudoku.board == 0)
-        if len(empty_cells[0]) > 0:
-            return np.array(list(zip(*empty_cells)))
-        return None
-
     def solve_profundidad(self, measure=False):
         # Tema 3, diapositiva 42
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [sudoku]
         closed_nodes = []
-        ciclos = 1
+        ciclos = 0
         while open_nodes:
             ciclos += 1
             current = open_nodes.pop()  # 1.
@@ -69,7 +87,7 @@ class SudokuSolver:
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [sudoku]
         closed_nodes = []
-        ciclos = 1
+        ciclos = 0
         while open_nodes:
             ciclos += 1
             current = open_nodes.pop(0)  # 1.
@@ -87,7 +105,7 @@ class SudokuSolver:
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [(sudoku, 0)]  # (tablero, coste)
         closed_nodes = []
-        ciclos = 1
+        ciclos = 0
         while open_nodes:
             ciclos += 1
             current, cost = open_nodes.pop(0)  # 1.
@@ -129,7 +147,7 @@ class SudokuSolver:
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [(sudoku, sudoku.heuristic())]
         closed_nodes = []
-        ciclos = 1
+        ciclos = 0
         while open_nodes:
             ciclos += 1
             current, heuristic = open_nodes.pop(0)  # 1.
@@ -155,7 +173,7 @@ class SudokuSolver:
         sudoku = copy.deepcopy(self.sudoku)
         open_nodes = [(sudoku, 0, 0)]  # (tablero, coste, heurística)
         closed_nodes = []
-        ciclos = 1
+        ciclos = 0
         while open_nodes:
             ciclos += 1
             current, cost, heuristic = open_nodes.pop(0)  # 1.
@@ -197,16 +215,16 @@ class SudokuSolver:
         # Pseudocódigo de elaboración propia
         sudoku = copy.deepcopy(self.sudoku)
         solved = False
-        ciclos = 1
+        ciclos = 0
         while not solved:
-            ciclos += 1
             sudoku_before = copy.deepcopy(sudoku)
-            _restrictions(sudoku)
+            ciclos += _restrictions(sudoku, ciclos)
             if sudoku.is_solved():
                 if measure:
                     print(f'Ciclos: {ciclos}')
                 solved = True
-            elif np.array_equal(sudoku_before.board, sudoku.board):
+            elif np.array_equal(sudoku_before.board_valids, sudoku.board_valids):
                 print(f'Ciclos: {ciclos}')
                 print(sudoku.board_string())
                 raise Exception('No más avances posibles')
+        return sudoku
