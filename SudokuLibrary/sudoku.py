@@ -205,11 +205,13 @@ class Sudoku:
                              .format(num, row_coord, col_coord, self.get_cell(row_coord, col_coord))
                              )
 
+        sudoku = copy.deepcopy(self)  # Copida profunda para no modificar el original si hay un error
         # Rellenamos la celda
         if self._update_board_valids(row_coord, col_coord, num):
             # Si el número es válido, Agregamos paso al camino hacia la solución y devolvemos True
             self._update_solution_path(row_coord, col_coord, num)
             return True
+        self.board_valids = sudoku.board_valids  # Si no es válido, restauramos el sudoku original
         return False  # Se ha rellenado y tenemos un sudoku invalido. Devuelve False
 
     def _calculate_board_valids(self) -> np.ndarray:
