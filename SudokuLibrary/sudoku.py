@@ -259,7 +259,7 @@ class Sudoku:
                     if sudoku.fill_cell(row, col, num):  # Se hace el fill. Si ha dado un estado válido
                         if cost is not None:  # Si cost no es None, devolvemos una tupla con el coste
                             # Coste de un nodo: el número de hijos que puede generar el padre más el coste acumulado
-                            cost += possible_numbers.size - 1
+                            cost += 2 ^ possible_numbers.size
                             successors.append((sudoku, cost))
                         else:  # Si cost es None, devolvemos solo el sudoku sucesor
                             successors.append(sudoku)
@@ -268,7 +268,8 @@ class Sudoku:
 
     def heuristic(self):
         # return np.sum(self.board_valids)
-        return np.multiply(self.board_valids, self.board_valids).sum()
+        # return np.multiply(self.board_valids, self.board_valids).sum()
+        return 2 ^ np.sum(self.board_valids)
 
     def _update_solution_path(self, row_coord: int, col_coord: int, num: int):
         """
