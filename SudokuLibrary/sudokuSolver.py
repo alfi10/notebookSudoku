@@ -11,11 +11,11 @@ def show_sudoku(sudoku: Sudoku):
 def _last_possible_cell(sudoku: Sudoku,):
     ciclos = 0
     # Última celda restante
-    filled_cell_on_iteration = True
-    while filled_cell_on_iteration:
+    rule_applied = True
+    while rule_applied:
         ciclos += 1  # Contador de ciclos
         # Empieza en False. Si se rellena alguna celda, set True y se vuelve a iterar
-        filled_cell_on_iteration = False
+        rule_applied = False
         # Calcula las celdas vacías
         valids_cells = np.sum(sudoku.board_valids, axis=2)
         empty_cells = np.argwhere(valids_cells > 1)
@@ -41,8 +41,8 @@ def _last_possible_cell(sudoku: Sudoku,):
             for cellxsector in [cellxrow, cellxcol, cellxsqr]:
                 if np.any(cellxsector == 1):
                     num = np.argwhere(cellxsector == 1)[0][0] + 1
-                    filled_cell_on_iteration = sudoku.fill_cell(row, col, num)
-                    if filled_cell_on_iteration:
+                    rule_applied = sudoku.fill_cell(row, col, num)
+                    if rule_applied:
                         pass
                     break
     return ciclos
@@ -58,7 +58,7 @@ def _restrictions(sudoku: Sudoku):
     # Último número posible en celda -> Implícito
     ciclos += _last_possible_cell(sudoku)  # Última celda restante
     # Sencillos obvios -> Implícito
-    _obvious_pairs(sudoku)  # Parejas obvias
+    ciclos += _obvious_pairs(sudoku)  # Parejas obvias
 
     return ciclos
 
