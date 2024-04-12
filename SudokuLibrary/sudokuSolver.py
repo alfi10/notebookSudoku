@@ -168,10 +168,8 @@ def _restrictions(sudoku: Sudoku):
     # Última celda libre -> Implícito
     # Último número posible en celda -> Implícito
     ciclos += _last_possible_cell(sudoku)  # Última celda restante
-    print(ciclos)
     # Sencillos obvios -> Implícito
     ciclos += _obvious_pairs(sudoku)  # Parejas obvias
-    print(ciclos)
 
     return ciclos
 
