@@ -1,6 +1,6 @@
 import bisect
 import copy
-from itertools import product
+from itertools import product, combinations
 import numpy as np
 from .sudoku import Sudoku
 
@@ -91,33 +91,32 @@ def _row_col_comparation_alteration(sudoku, static_coord, valids_cells, candidat
                     if not rule_applied:
                         rule_applied = not np.array_equal(valids_cells_pre_match, valids_cells)
     else:
-        for i in range(len(candidate_coords)):
-            x_row = candidate_coords[i][0]
-            x_col = candidate_coords[i][1]
+        combination_coords = list(combinations(candidate_coords, 2))
+        for i in range(len(combination_coords)):
+            x_row = combination_coords[i][0][0]
+            x_col = combination_coords[i][0][1]
             candidate_x = sudoku.board_valids[x_row, x_col]
-            # compara el i elemento con los i+1 - len()
-            for j in range(i + 1, len(candidate_coords)):
-                y_row = candidate_coords[j][0]
-                y_col = candidate_coords[j][1]
-                candidate_y = sudoku.board_valids[y_row, y_col]
-                if np.array_equal(candidate_x, candidate_y):  # 4.
-                    if mode == 'ROW':
-                        # Encontrada parejas obvias en la fila
-                        for k in range(9):
-                            # Altera todas las celdas de la fila menos las parejas
-                            if k != x_col and k != y_col:
-                                valids_cells[k] = np.multiply(np.invert(candidate_x), valids_cells[k])
-                        sudoku.board_valids[static_coord, :, :] = valids_cells
-                    elif mode == 'COL':
-                        # Encontrada parejas obvias en la columna
-                        for k in range(9):
-                            # Altera todas las celdas de la fila menos las parejas
-                            if k != x_row and k != y_row:
-                                valids_cells[k] = np.multiply(np.invert(candidate_x), valids_cells[k])  # 5.
-                        sudoku.board_valids[:, static_coord, :] = valids_cells
-                    # rule_applied si valids_cells pre match != valids_cells post match
-                    if not rule_applied:
-                        rule_applied = not np.array_equal(valids_cells_pre_match, valids_cells)
+            y_row = combination_coords[i][1][0]
+            y_col = combination_coords[i][1][1]
+            candidate_y = sudoku.board_valids[y_row, y_col]
+            if np.array_equal(candidate_x, candidate_y):  # 4.
+                if mode == 'ROW':
+                    # Encontrada parejas obvias en la fila
+                    for k in range(9):
+                        # Altera todas las celdas de la fila menos las parejas
+                        if k != x_col and k != y_col:
+                            valids_cells[k] = np.multiply(np.invert(candidate_x), valids_cells[k])
+                    sudoku.board_valids[static_coord, :, :] = valids_cells
+                elif mode == 'COL':
+                    # Encontrada parejas obvias en la columna
+                    for k in range(9):
+                        # Altera todas las celdas de la fila menos las parejas
+                        if k != x_row and k != y_row:
+                            valids_cells[k] = np.multiply(np.invert(candidate_x), valids_cells[k])  # 5.
+                    sudoku.board_valids[:, static_coord, :] = valids_cells
+                # rule_applied si valids_cells pre match != valids_cells post match
+                if not rule_applied:
+                    rule_applied = not np.array_equal(valids_cells_pre_match, valids_cells)
     return rule_applied
 
 
@@ -163,6 +162,34 @@ def _obvious_pairs(sudoku):
     return ciclos
 
 
+def _hidden_pairs(sudoku):
+    ciclos = 0
+    # Parejas ocultas. Pseudocódigo de elaboración propia
+    rule_applied = True
+    while rule_applied:
+        ciclos += 1
+        rule_applied = False
+        # 1.- Aplica por sectores: filas, columnas y cuadrantes
+        for row_col in range(9):
+            # Filas
+            valids_cells = sudoku.board_valids[row_col, :, :]
+            valids_cells_sum = np.sum(valids_cells, axis=1)  # 2.
+            row_valids = np.argwhere(valids_cells_sum > 2)[:, 0]  # 3.
+            if row_valids.size > 1:
+                valids_candidates = valids_cells[row_valids]
+                valids_numbers = np.argwhere(np.sum(valids_candidates, axis=0) > 0)[:, 0]
+                print(valids_numbers, 'numeros unicos')
+                candidate_subsets = list(combinations(valids_numbers, 2))
+                # for i in range(valids_numbers.size - 1):
+                    # candidate_subsets.append(list(product(valids_numbers[i], valids_numbers[1:])))
+                print(candidate_subsets, 'subsetas')
+                print(parar)
+                candidate_coords = list(product([row_col], row_valids))
+
+
+    return ciclos
+
+
 def _restrictions(sudoku: Sudoku):
     ciclos = 0
     # Última celda libre -> Implícito
@@ -170,6 +197,7 @@ def _restrictions(sudoku: Sudoku):
     ciclos += _last_possible_cell(sudoku)  # Última celda restante
     # Sencillos obvios -> Implícito
     ciclos += _obvious_pairs(sudoku)  # Parejas obvias
+    ciclos += _hidden_pairs(sudoku)  # Parejas ocultas
 
     return ciclos
 
