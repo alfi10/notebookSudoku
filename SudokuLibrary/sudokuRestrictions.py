@@ -70,7 +70,8 @@ class Sudoku:
                         inv_collision = np.logical_not(valid_collision)
                         pre_change = self.valids[icoord].copy()
                         self.valids[icoord] = np.logical_and(self.valids[icoord], inv_collision)
-                        change_ocurred = not np.array_equal(pre_change, self.valids[icoord])
+                        if not change_ocurred:
+                            change_ocurred = not np.array_equal(pre_change, self.valids[icoord])
                 if np.sum(self.valids[icoord]) == 1:
                     # New number
                     self.board[coord_eval[0], coord_eval[1]] = np.argmax(self.valids[icoord]) + 1
