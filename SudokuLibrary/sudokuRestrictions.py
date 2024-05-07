@@ -28,10 +28,10 @@ def _representation2board(coords: np.ndarray, valids: np.ndarray):
     La celda será un 0 si no se puede determinar su valor.
     """
     board = np.zeros((9, 9), dtype=int)
-    for coord in coords:
-        x, y, _ = coord
-        if np.sum(valids[x, y]) == 1:
-            board[x, y] = np.argmax(valids[x, y]) + 1
+    for icoord in range(coords.shape[0]):
+        x, y, _ = coords[icoord]
+        if np.sum(valids[icoord]) == 1:
+            board[x, y] = np.argmax(valids[icoord]) + 1
     return board
 
 
@@ -44,24 +44,33 @@ class Sudoku:
         """
         Restricciones básicas de un sudoku: filas, columnas y cuadrantes
         """
-        for icoord in range(self.coords.shape[0]):
-            if np.sum(self.valids[icoord]) > 1:
+        num_coords = self.coords.shape[0]
+        for icoord in range(num_coords):
+            coord_eval = self.coords[icoord]
+            valid_eval = self.valids[icoord]
+            if np.sum(valid_eval) > 1:
                 # Skips if already determined
-                # x, y, z = self.coords[icoord]
-                collisions = []
-                for dim in range(self.coords.shape[1]):
-                    collisions.append(self.coords[self.coords[:, dim] == self.coords[icoord, dim]])
-                collisions = np.array(collisions).reshape(-1, 3)
+                # x, y, z = coord_eval
+                collisions = set()
+                num_dims = self.coords.shape[1]
+                for dim in range(num_dims):
+                    dim_cols = self.coords[self.coords[:, dim] == self.coords[icoord, dim]]
+                    for coord in dim_cols:
+                        collisions.add(tuple(coord))
+                # collisions = np.array(list(collisions)).reshape(-1, 3)
+                collisions = list(collisions)
                 # Update current coord valids
                 for collision in collisions:
                     x = collision[0]
                     y = collision[1]
-                    valid = self.valids[x*9 + y]
-                    if np.sum(valid) == 1:
+                    valid_collision = self.valids[x*9 + y]
+                    if np.sum(valid_collision) == 1:
                         # Eliminate from possible values
-                        inv_collision = np.logical_not(valid)
+                        inv_collision = np.logical_not(valid_collision)
                         self.valids[icoord] = np.logical_and(self.valids[icoord], inv_collision)
                 if np.sum(self.valids[icoord]) == 1:
-                    # New name set
-                    self.board[self.coords[icoord][0], self.coords[icoord][1]] = np.argmax(self.valids[icoord]) + 1
-                    print(f"Coord {self.coords[icoord]} solo tiene una opción: {np.argmax(self.valids[icoord]) + 1}")
+                    # New deal
+                    self.board[coord_eval[0], coord_eval[1]] = np.argmax(self.valids[icoord]) + 1
+                    print(f"Coord {coord_eval} solo tiene una opción: {np.argmax(self.valids[icoord]) + 1}")
+        # Update board
+        self.board = _representation2board(self.coords, self.valids)
