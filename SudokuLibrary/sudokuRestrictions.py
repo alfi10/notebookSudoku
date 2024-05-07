@@ -44,6 +44,7 @@ class Sudoku:
         """
         Restricciones básicas de un sudoku: filas, columnas y cuadrantes
         """
+        change_ocurred = False
         num_coords = self.coords.shape[0]
         for icoord in range(num_coords):
             coord_eval = self.coords[icoord]
@@ -67,10 +68,13 @@ class Sudoku:
                     if np.sum(valid_collision) == 1:
                         # Eliminate from possible values
                         inv_collision = np.logical_not(valid_collision)
+                        pre_change = self.valids[icoord].copy()
                         self.valids[icoord] = np.logical_and(self.valids[icoord], inv_collision)
+                        change_ocurred = not np.array_equal(pre_change, self.valids[icoord])
                 if np.sum(self.valids[icoord]) == 1:
-                    # New deal
+                    # New number
                     self.board[coord_eval[0], coord_eval[1]] = np.argmax(self.valids[icoord]) + 1
                     print(f"Coord {coord_eval} solo tiene una opción: {np.argmax(self.valids[icoord]) + 1}")
         # Update board
         self.board = _representation2board(self.coords, self.valids)
+        return change_ocurred
