@@ -1,0 +1,25 @@
+La práctica está realizada en python 3.10
+La explicación de como configurar el entorno está hecha usando vscode como ide
+
+SI LA EJECUCIÓN DE SCRIPTS ESTÁ DESACTIVADA EN EL SISTEMA
+1.- Abrir Powershell como administrador
+2.- Ejecutar:
+Set-ExecutionPolicy RemoteSigned
+3.- Sí a todo
+
+PREPARAR EL ENTORNO
+1.- Descomprimir el rar en el directorio deseado
+2.- Abrir la carpeta 'notebookSudoku' con vscode
+3.- Abrir la terminal. Vamos a crear un entorno virtual ejecutando el siguiente comando:
+python -m venv myenv
+4.- Agregar el entorno creado al espacio de trabajo (debería sugerirlo vscode)
+5.- Activamos el entorno con:
+myenv/Scripts/activate
+6.- Instalamos requerimientos con:
+pip install -r ./requirements.txt
+7. Ya se dar a ejecutar todo el main.ipynb. Si pide vscode un intérprete asignarle el myenv creado
+
+CARGAR UN SUDOKU DIFERENTE
+En el main hay una serie de sudokus preparados al principio.
+Para cargarlo, ir a la celda de código precedida por el markdown 'Carga de sudoku a resolver'
+y pegar el np.array() con el sudoku que se quiera resolver.
