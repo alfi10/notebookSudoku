@@ -61,8 +61,6 @@ class Sudoku:
                     change_ocurred = not np.array_equal(pre_change, self.valids)
         # Update board
         self.board = _representation2board(self.coords, self.valids)
-        print(np.where(self.board != pre_board))
-        print('asignado nums ', self.board[np.where(self.board != pre_board)])
         return change_ocurred
 
     def obvious_pairs(self):
@@ -95,10 +93,6 @@ class Sudoku:
                         # Actualiza las celdas
                         index_valids = np.where(np.all(self.coords[:, None, :] == no_pair_sector_coords, axis=2))
                         self.valids[index_valids[0]] = no_pair_sector_valids
-                        if not np.array_equal(pre_change, self.valids):
-                            print(f"Par encontrado en sector {sector} con valor {sector_num}")
-                            print(f"Pareja: {pair}")
-                            print(f"valids: {pair_valids[0]}")
                         if not change_ocurred:
                             change_ocurred = not np.array_equal(pre_change, self.valids)
         # Update board
