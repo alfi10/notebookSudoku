@@ -1,6 +1,5 @@
 import bisect
 import copy
-from itertools import product, combinations, groupby
 import numpy as np
 from .sudoku import Sudoku
 from .sudokuRestrictions import Sudoku as SudokuRestrictions
