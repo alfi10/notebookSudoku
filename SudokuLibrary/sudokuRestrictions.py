@@ -50,34 +50,19 @@ class Sudoku:
         for icoord in range(num_coords):
             coord_eval = self.coords[icoord]
             valid_eval = self.valids[icoord]
-            if np.sum(valid_eval) > 1:
-                # Skips if already determined
-                # x, y, z = coord_eval
-                collisions = set()
-                num_dims = self.coords.shape[1]
-                for dim in range(num_dims):
-                    dim_cols = self.coords[self.coords[:, dim] == self.coords[icoord, dim]]
-                    for coord in dim_cols:
-                        collisions.add(tuple(coord))
-                collisions = list(collisions)
-                # Update current coord valids
-                for collision in collisions:
-                    x = collision[0]
-                    y = collision[1]
-                    valid_collision = self.valids[x*9 + y]
-                    if np.sum(valid_collision) == 1:
-                        # Eliminate from possible values
-                        inv_collision = np.logical_not(valid_collision)
-                        pre_change = self.valids[icoord].copy()
-                        self.valids[icoord] = np.logical_and(self.valids[icoord], inv_collision)
-                        if not change_ocurred:
-                            change_ocurred = not np.array_equal(pre_change, self.valids[icoord])
-                if np.sum(self.valids[icoord]) == 1:
-                    # New number
-                    self.board[coord_eval[0], coord_eval[1]] = np.argmax(self.valids[icoord]) + 1
-                    print(f"Coord {coord_eval} solo tiene una opción: {np.argmax(self.valids[icoord]) + 1}")
+            if np.sum(valid_eval) == 1:  # Anula el num en todas las colisiones
+                icollisions = np.argwhere(np.any(self.coords == coord_eval, axis=1)).flatten()
+                icollisions = [elem for elem in icollisions if not np.array_equal(elem, icoord)]
+                remove_possible = np.logical_not(valid_eval)
+                pre_change = self.valids.copy()
+                pre_board = self.board.copy()
+                self.valids[icollisions] = np.logical_and(self.valids[icollisions], remove_possible)
+                if not change_ocurred:
+                    change_ocurred = not np.array_equal(pre_change, self.valids)
         # Update board
         self.board = _representation2board(self.coords, self.valids)
+        print(np.where(self.board != pre_board))
+        print('asignado nums ', self.board[np.where(self.board != pre_board)])
         return change_ocurred
 
     def obvious_pairs(self):
@@ -91,9 +76,9 @@ class Sudoku:
             for sector_num in range(9):
                 sector_coords = self.coords[self.coords[:, sector] == sector_num]
                 sector_valids = self.valids[self.coords[:, sector] == sector_num]
-                # Suma de validos por número [1-9]
-                sum_valids_per_num = np.sum(sector_valids, axis=1)
-                sector_candidates = np.argwhere(sum_valids_per_num == 2).flatten()
+                # Suma de validos por candidato
+                sum_valids_per_cand = np.sum(sector_valids, axis=1)
+                sector_candidates = np.argwhere(sum_valids_per_cand == 2).flatten()
                 pair_candidates = list(combinations(sector_candidates, 2))
                 for pair in pair_candidates:
                     pair_valids = sector_valids[list(pair)]
@@ -116,6 +101,42 @@ class Sudoku:
                             print(f"valids: {pair_valids[0]}")
                         if not change_ocurred:
                             change_ocurred = not np.array_equal(pre_change, self.valids)
+        # Update board
+        self.board = _representation2board(self.coords, self.valids)
+        return change_ocurred
+
+    def hidden_pairs(self):
+        """
+        Restricciones de pares ocultos
+        """
+        change_ocurred = False
+        # Se aplica por sectores: filas, columnas y cuadrantes
+        num_sectors = self.coords.shape[1]
+        for sector in range(num_sectors):
+            for sector_num in range(9):
+                sector_coords = self.coords[self.coords[:, sector] == sector_num]
+                sector_valids = self.valids[self.coords[:, sector] == sector_num]
+                # Suma de validos por número [1-9]
+                sum_valids_per_num = np.sum(sector_valids, axis=0)
+                possible_hiddens = np.argwhere(sum_valids_per_num > 2).flatten()
+                if len(possible_hiddens) > 1:
+                    # Combinaciones de 2 números posibles ocultos
+                    pair_candidates = list(combinations(possible_hiddens, 2))
+                    for pair in pair_candidates:
+                        # Seleccionamos todos los valids[pair]
+                        pair_valids = sector_valids[:, list(pair)]
+                        if np.all(np.sum(pair_valids, axis=0) == 2):
+                            sector_coords_to_change = sector_coords[np.argwhere(np.all(pair_valids, axis=1)).flatten()]
+                            change_coords = np.where(
+                                np.all(
+                                    np.any(
+                                        self.coords[:, None] == sector_coords_to_change, axis=1), axis=1))[0]
+                            new_valids = np.zeros(9, dtype=bool)
+                            new_valids[list(pair)] = True
+                            pre_change = self.valids.copy()
+                            np.logical_and(self.valids[change_coords], new_valids)
+                            if not change_ocurred:
+                                change_ocurred = not np.array_equal(pre_change, self.valids)
         # Update board
         self.board = _representation2board(self.coords, self.valids)
         return change_ocurred
