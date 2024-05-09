@@ -307,7 +307,7 @@ class Sudoku:
                 self.solution_path.pop()
 
     @staticmethod
-    def get_row_col_cuadrant_coords(row_coord: int, col_coord: int):
+    def get_row_col_cuadrant_coords(row_coord: int, col_coord: int) -> set:
         """
         Calcula las coordenadas correspondientes a la misma  fila, misma columna y mismo cuadrante de unas coordenadas
         dadas. Devuelve un conjunto con las coordenadas de las celdas menos las coordenadas dadas.
