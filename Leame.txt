@@ -23,3 +23,6 @@ CARGAR UN SUDOKU DIFERENTE
 En el main hay una serie de sudokus preparados al principio.
 Para cargarlo, ir a la celda de código precedida por el markdown 'Carga de sudoku a resolver'
 y pegar el np.array() con el sudoku que se quiera resolver.
+
+GITHUB
+https://github.com/alfi10/notebookSudoku
