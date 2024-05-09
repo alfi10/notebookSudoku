@@ -39,10 +39,12 @@ class Sudoku:
     def __init__(self, board: np.ndarray = np.zeros((9, 9), dtype=int)):
         self.board = board
         self.coords, self.valids = _board2representation(board)
+        self.camino = []
 
     def __str__(self):
         string = str()
         raw_data = self.board
+        string += str(self.camino) + '\n'
         for index_row, row in enumerate(raw_data):
             if index_row % 3 == 0:
                 string += ('-' * 31) + '\n'
@@ -61,6 +63,7 @@ class Sudoku:
         """
         change_ocurred = False
         num_coords = self.coords.shape[0]
+        board_pre_change = self.board.copy()
         for icoord in range(num_coords):
             coord_eval = self.coords[icoord]
             valid_eval = self.valids[icoord]
@@ -73,8 +76,15 @@ class Sudoku:
                 self.valids[icollisions] = np.logical_and(self.valids[icollisions], remove_possible)
                 if not change_ocurred:
                     change_ocurred = not np.array_equal(pre_change, self.valids)
+
         # Update board
         self.board = _representation2board(self.coords, self.valids)
+        # Update camino
+        if change_ocurred:
+            for x in range(self.board.shape[0]):
+                for y in range(self.board.shape[1]):
+                    if board_pre_change[x, y] == 0 and self.board[x, y] != 0:
+                        self.camino.append((x, y, self.board[x, y]))
         return change_ocurred
 
     def obvious_pairs(self):
@@ -84,6 +94,7 @@ class Sudoku:
         change_ocurred = False
         # Se aplica por sectores: filas, columnas y cuadrantes
         num_sectors = self.coords.shape[1]
+        board_pre_change = self.board.copy()
         for sector in range(num_sectors):
             for sector_num in range(9):
                 sector_coords = self.coords[self.coords[:, sector] == sector_num]
@@ -111,6 +122,12 @@ class Sudoku:
                             change_ocurred = not np.array_equal(pre_change, self.valids)
         # Update board
         self.board = _representation2board(self.coords, self.valids)
+        # Update camino
+        if change_ocurred:
+            for x in range(self.board.shape[0]):
+                for y in range(self.board.shape[1]):
+                    if board_pre_change[x, y] == 0 and self.board[x, y] != 0:
+                        self.camino.append((x, y, self.board[x, y]))
         return change_ocurred
 
     def hidden_pairs(self):
@@ -120,6 +137,7 @@ class Sudoku:
         change_ocurred = False
         # Se aplica por sectores: filas, columnas y cuadrantes
         num_sectors = self.coords.shape[1]
+        board_pre_change = self.board.copy()
         for sector in range(num_sectors):
             for sector_num in range(9):
                 sector_coords = self.coords[self.coords[:, sector] == sector_num]
@@ -147,6 +165,12 @@ class Sudoku:
                                 change_ocurred = not np.array_equal(pre_change, self.valids)
         # Update board
         self.board = _representation2board(self.coords, self.valids)
+        # Update camino
+        if change_ocurred:
+            for x in range(self.board.shape[0]):
+                for y in range(self.board.shape[1]):
+                    if board_pre_change[x, y] == 0 and self.board[x, y] != 0:
+                        self.camino.append((x, y, self.board[x, y]))
         return change_ocurred
 
     def is_solved(self):
