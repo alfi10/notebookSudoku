@@ -40,6 +40,20 @@ class Sudoku:
         self.board = board
         self.coords, self.valids = _board2representation(board)
 
+    def __str__(self):
+        string = str()
+        raw_data = self.board
+        for index_row, row in enumerate(raw_data):
+            if index_row % 3 == 0:
+                string += ('-' * 31) + '\n'
+            for index_cell, cell in enumerate(row):
+                if index_cell % 3 == 0:
+                    string += '|'
+                string += ' {} '.format(cell)
+            string += '|\n'
+        string += ('-' * 31) + '\n'
+        return string
+
     def basic_restrictions(self):
         """
         Restricciones básicas de un sudoku: filas, columnas y cuadrantes
