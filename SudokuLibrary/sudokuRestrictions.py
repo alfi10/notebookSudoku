@@ -134,3 +134,6 @@ class Sudoku:
         # Update board
         self.board = _representation2board(self.coords, self.valids)
         return change_ocurred
+
+    def is_solved(self):
+        return np.all(np.sum(self.valids, axis=1) == 1)
